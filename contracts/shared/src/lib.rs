@@ -2,11 +2,13 @@
 
 pub mod constants;
 pub mod errors;
+pub mod interfaces;
 pub mod math;
 pub mod types;
 
 pub use constants::*;
 pub use errors::ContractError;
+pub use interfaces::*;
 pub use math::*;
 pub use types::*;
 
