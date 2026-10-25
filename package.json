@@ -1,0 +1,28 @@
+{
+  "name": "marketpulse-oracle",
+  "private": true,
+  "description": "A crowd-sourced, stake-backed local data oracle for West Africa on Stellar Soroban",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint && prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "lint:fix": "turbo lint -- --fix && prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "bindings:generate": "node scripts/bindings-generate.js",
+    "simulate:economics": "node scripts/simulate-economics.js",
+    "db:migrate": "node scripts/db-migrate.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "demo:e2e": "node scripts/demo-e2e.js",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.3"
+  }
+}
