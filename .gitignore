@@ -36,3 +36,5 @@ Thumbs.db
 # Stellar / Soroban
 .soroban/
 .stellar/
+**/test_snapshots/
+test_snapshots/

@@ -7,3 +7,6 @@ pnpm-lock.yaml
 README.md
 Plan.md
 *.wasm
+contracts/**/test_snapshots/**
+**/test_snapshots/**
+
