@@ -15,17 +15,17 @@ assignees: ''
 ## Standardisation Specification (README 9.3)
 
 1. **Unit:**
-   *(e.g., 50 kg bag, standard derica measure, crate, liter)*
+   _(e.g., 50 kg bag, standard derica measure, crate, liter)_
 2. **Grade / Variety:**
-   *(e.g., local parboiled vs imported, sweet white garri vs yellow garri)*
+   _(e.g., local parboiled vs imported, sweet white garri vs yellow garri)_
 3. **Location Granularity:**
-   *(Coarse market-level geohash: 6-8 chars. Never stall-level or personal residence)*
+   _(Coarse market-level geohash: 6-8 chars. Never stall-level or personal residence)_
 4. **Currency and Decimals:**
-   *(Minor units, e.g., NGN with 2 decimals, XOF with 0 decimals)*
+   _(Minor units, e.g., NGN with 2 decimals, XOF with 0 decimals)_
 5. **Default Tolerance Band:**
-   *(e.g., 800 bps = 8%)*
+   _(e.g., 800 bps = 8%)_
 6. **Evidence Rule:**
-   *(e.g., photo of stall with visible price tag, or timestamped market ticket)*
+   _(e.g., photo of stall with visible price tag, or timestamped market ticket)_
 
 ## Risk & Safety Assessment
 

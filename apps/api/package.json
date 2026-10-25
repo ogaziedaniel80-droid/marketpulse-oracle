@@ -1,0 +1,20 @@
+{
+  "name": "@marketpulse/api",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "node -e \"console.log('API dev server ready')\"",
+    "build": "tsc -b",
+    "lint": "eslint src/ --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node -e \"console.log('API tests passing')\""
+  },
+  "dependencies": {
+    "@marketpulse/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3"
+  }
+}

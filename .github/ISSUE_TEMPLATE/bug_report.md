@@ -10,6 +10,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **Component**
+
 - [ ] Contracts (`contracts/*`)
 - [ ] Packages (`packages/*`)
 - [ ] Applications (`apps/*`)
@@ -19,6 +20,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Run '...'
 2. See error
 
@@ -26,6 +28,7 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Environment:**
+
 - OS: [e.g. Linux, macOS]
 - Rust / Soroban SDK version:
 - Node / pnpm version:

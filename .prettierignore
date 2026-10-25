@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.next
+target
+pnpm-lock.yaml
+README.md
+Plan.md
+*.wasm

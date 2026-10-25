@@ -35,10 +35,12 @@ Describe the context and problem being faced. What are we trying to solve? Which
 Chosen option: "Option X" because [justification].
 
 ### Positive Consequences
+
 - Advantage 1
 - Advantage 2
 
 ### Negative Consequences / Trade-offs
+
 - Trade-off 1
 - Trade-off 2
 
@@ -47,15 +49,18 @@ Chosen option: "Option X" because [justification].
 ## Pros and Cons of Options
 
 ### Option 1
+
 - Good, because ...
 - Bad, because ...
 
 ### Option 2
+
 - Good, because ...
 - Bad, because ...
 
 ---
 
 ## Links
+
 - Related ADRs: [ADR-XXXX]
 - Relevant README Section: Section X

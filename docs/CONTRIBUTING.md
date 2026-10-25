@@ -15,6 +15,7 @@ All contributors are expected to uphold our [Code of Conduct](./CODE_OF_CONDUCT.
 Before contributing, read `README.md` and `Plan.md` thoroughly.
 
 ### Product Guardrails
+
 1. **Core Mechanism:** Requests with escrowed USDC bounty -> commit (`sha256(value || salt)`) with stake -> reveal with evidence hash -> reputation-weighted median -> payouts and gentle slashing -> challenge window -> finalised observation via `OracleFeed`.
 2. **Slashing Policies:** Outlier slashing is gentle (20-30% default). Non-reveal slashing is heavier (50-100%). Full 100% slashing and reputation reset is reserved only for provable fraud.
 3. **Privacy First:** Never store personal data on-chain. Store only cryptographic hashes, coarse market-level geohashes, and aggregated medians.
@@ -27,6 +28,7 @@ Before contributing, read `README.md` and `Plan.md` thoroughly.
 ## 3. Architecture Decision Records (ADRs)
 
 Do not add unapproved features or alter public contract interfaces arbitrarily. If a change or architecture deviation is necessary:
+
 1. Open a proposal under `docs/adr/NNNN-<title>.md` using `docs/adr/0000-template.md`.
 2. Seek approval before proceeding with implementation.
 

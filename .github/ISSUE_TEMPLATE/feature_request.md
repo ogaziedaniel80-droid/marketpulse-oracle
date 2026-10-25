@@ -16,6 +16,7 @@ A clear and concise description of what you want to happen.
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Guards and Specifications**
+
 - Does this require an Architecture Decision Record (`docs/adr/`)?
 - Does this impact contract resource budgets or Soroban CPU limits?
 - Does this preserve privacy guardrails (no personal data on-chain)?

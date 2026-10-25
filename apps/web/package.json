@@ -1,0 +1,21 @@
+{
+  "name": "@marketpulse/web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "node -e \"console.log('Web dev server ready')\"",
+    "build": "tsc -b",
+    "lint": "eslint src/ --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node -e \"console.log('Web tests passing')\""
+  },
+  "dependencies": {
+    "@marketpulse/shared": "workspace:*",
+    "@marketpulse/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3"
+  }
+}

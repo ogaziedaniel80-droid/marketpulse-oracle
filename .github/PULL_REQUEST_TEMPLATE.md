@@ -3,6 +3,7 @@
 <!-- Briefly describe the purpose and content of this pull request. -->
 
 ## Conventional Commit Type
+
 - [ ] `feat`: New feature or capability
 - [ ] `fix`: Bug fix
 - [ ] `docs`: Documentation update
@@ -10,7 +11,9 @@
 - [ ] `chore`: Build/tooling/dependency updates
 
 ## Contract Change Checklist
+
 <!-- Required if this PR modifies any crate in contracts/ -->
+
 - [ ] Updated unit and property tests covering all modified code paths
 - [ ] Regenerated TypeScript contract bindings (`pnpm bindings:generate`)
 - [ ] Documented changes in [`docs/contracts-changelog.md`](../docs/contracts-changelog.md)
@@ -19,6 +22,7 @@
 - [ ] Two maintainer reviews requested for contract changes
 
 ## Product & Security Guardrails
+
 - [ ] Mechanism preserved: commit -> reveal -> median -> payouts/slashing -> challenge
 - [ ] No personal data on-chain (only hashes, coarse market geohashes, aggregates)
 - [ ] Auth checks: every state-changing contract function calls `require_auth()`

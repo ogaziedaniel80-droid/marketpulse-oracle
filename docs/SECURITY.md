@@ -12,6 +12,7 @@ Instead, report vulnerabilities privately by emailing:
 `security@marketpulse.org`
 
 Include the following information in your report:
+
 - Type of vulnerability (e.g., smart contract logic flaw, reentrancy, integer overflow, auth bypass, sybil attack bypass, relay griefing, unauthorized funds transfer).
 - Affected contracts or packages (e.g. `contracts/request-board`, `contracts/registry`).
 - Step-by-step reproduction instructions or a minimal proof-of-concept (PoC) test.
@@ -33,5 +34,6 @@ Include the following information in your report:
 
 During testnet pilots and ahead of mainnet deployment, a bug bounty pool is established to reward security researchers who report valid vulnerabilities in scope.
 Scope includes:
+
 - Smart contracts: `contracts/registry`, `contracts/request-board`, `contracts/report-engine`, `contracts/disputes`, `contracts/oracle-feed`, and `contracts/shared`.
 - Invariants defined in `README.md` Section 8.4 (e.g. escrow conservation, unauthorized state mutation, double commitment, manipulation of weighted median).
