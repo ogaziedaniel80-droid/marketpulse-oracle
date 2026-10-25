@@ -1,6 +1,9 @@
 #![cfg(test)]
 
+extern crate std;
+
 use super::*;
+use proptest::prelude::*;
 use soroban_sdk::testutils::{Address as _, Ledger};
 use soroban_sdk::{token, Address, BytesN, Env};
 
@@ -40,7 +43,7 @@ fn valid_params(env: &Env, token_address: &Address) -> RequestParams {
     let now = env.ledger().timestamp();
     RequestParams {
         data_type: Symbol::new(env, "RICE50"),
-        geohash: BytesN::from_array(env, &[b's', b'1', b'4', b'b', b'3', b'k', b'9', b'x']),
+        geohash: BytesN::from_array(env, b"s14b3k9x"),
         bounty: 50_000_000, // 5 USDC
         token: token_address.clone(),
         min_stake: DEFAULT_MIN_STAKE_NEW_REPORTER,
@@ -147,6 +150,45 @@ fn test_create_request_param_validations() {
 }
 
 #[test]
+fn test_unauthorized_callers_rejected_for_every_admin_and_status_function() {
+    let (env, board, _admin, _token, token_admin, token_addr) = setup_test_env();
+    let requester = Address::generate(&env);
+    let unauth = Address::generate(&env);
+    token_admin.mint(&requester, &100_000_000);
+
+    let params = valid_params(&env, &token_addr);
+    let req_id = board.create_request(&requester, &params);
+
+    // 1. add_data_type by unauthorized
+    let res = board.try_add_data_type(&unauth, &Symbol::new(&env, "TEST"));
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 2. remove_data_type by unauthorized
+    let res = board.try_remove_data_type(&unauth, &Symbol::new(&env, "RICE50"));
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 3. set_admin by unauthorized
+    let res = board.try_set_admin(&unauth, &unauth);
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 4. set_authorized_caller by unauthorized
+    let res = board.try_set_authorized_caller(&unauth, &unauth, &true);
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 5. record_commit by unauthorized caller
+    let res = board.try_record_commit(&unauth, &req_id);
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 6. set_status by unauthorized caller
+    let res = board.try_set_status(&unauth, &req_id, &RequestStatus::Revealing);
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+
+    // 7. cancel_request by non-requester
+    let res = board.try_cancel_request(&unauth, &req_id);
+    assert_eq!(res.unwrap_err().unwrap(), ContractError::Unauthorized);
+}
+
+#[test]
 fn test_cancel_rejected_when_commits_exist() {
     let (env, board, admin, _token, token_admin, token_addr) = setup_test_env();
     let requester = Address::generate(&env);
@@ -222,4 +264,56 @@ fn test_list_open_requests_pagination() {
 
     let open_reqs_page2 = board.list_open_requests(&3, &2);
     assert_eq!(open_reqs_page2.len(), 1);
+}
+
+// -----------------------------------------------------------------------------
+// Property-Based Tests (proptest)
+// Invariant: Contract token balance always equals the sum of open escrowed bounties.
+// -----------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(20))]
+
+    #[test]
+    fn prop_contract_balance_equals_sum_of_open_bounties(
+        bounties in prop::collection::vec(30_000_000i128..=200_000_000i128, 1..=8),
+        cancels in prop::collection::vec(any::<bool>(), 1..=8)
+    ) {
+        let (env, board, _admin, token, token_admin, token_addr) = setup_test_env();
+        let requester = Address::generate(&env);
+
+        let total_mint: i128 = bounties.iter().sum();
+        token_admin.mint(&requester, &total_mint);
+
+        let mut request_ids = std::vec::Vec::new();
+        let mut expected_bounties = std::vec::Vec::new();
+
+        // Create requests
+        for &bounty in &bounties {
+            let mut params = valid_params(&env, &token_addr);
+            params.bounty = bounty;
+            let req_id = board.create_request(&requester, &params);
+            request_ids.push(req_id);
+            expected_bounties.push(bounty);
+
+            // Verify invariant after each create
+            let sum_open: i128 = expected_bounties.iter().sum();
+            prop_assert_eq!(token.balance(&board.address), sum_open);
+        }
+
+        // Randomly cancel a subset
+        for (i, &should_cancel) in cancels.iter().enumerate() {
+            if i < request_ids.len() && should_cancel {
+                board.cancel_request(&requester, &request_ids[i]);
+                expected_bounties[i] = 0;
+
+                // Verify invariant after each cancellation
+                let sum_open: i128 = expected_bounties.iter().sum();
+                prop_assert_eq!(token.balance(&board.address), sum_open);
+            }
+        }
+
+        let final_sum_open: i128 = expected_bounties.iter().sum();
+        prop_assert_eq!(token.balance(&board.address), final_sum_open);
+    }
 }
