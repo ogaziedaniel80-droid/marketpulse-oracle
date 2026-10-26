@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 10efb9a5c3125d6115c9549b2764968c984de6fd29795095f688589a35c13c74 # shrinks to bounty = 30000000, n_reporters = 3
