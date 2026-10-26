@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, BytesN, Symbol};
+use soroban_sdk::{contracttype, Address, BytesN, Symbol, Vec};
 
 #[contracttype]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -102,4 +102,82 @@ pub struct ReputationInfo {
     pub weight_bps: u32,
     pub stake_cap: i128,
     pub attestation_hash: BytesN<32>,
+}
+
+// ---------------------------------------------------------------------------
+// Assignment and randomness types (used by ReportEngine assignment)
+// ---------------------------------------------------------------------------
+
+/// Submitted by a party during the two-phase seed commitment for panel/assignment randomness.
+/// Phase 1: submit sha256(secret || nonce) — the commitment.
+/// Phase 2: reveal secret and nonce — verified against commitment.
+/// See docs/randomness.md for the full protocol.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SeedCommitment {
+    /// The committer (reporter, admin, or dedicated entropy contributor).
+    pub contributor: Address,
+    /// sha256(secret || nonce) submitted in phase 1.
+    pub hash: BytesN<32>,
+    /// Revealed secret (set to None until reveal phase).
+    pub revealed_secret: Option<BytesN<32>>,
+}
+
+/// Accumulated multi-party seed used for assignment or panel selection.
+/// Finalised by XOR-ing all revealed secrets.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AssignmentSeed {
+    /// XOR of all revealed secrets.
+    pub seed: BytesN<32>,
+    /// Ledger sequence number at which the seed was finalised.
+    pub finalised_at_ledger: u32,
+}
+
+/// Dispute record stored per request.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DisputeRecord {
+    pub request_id: u64,
+    pub challenger: Address,
+    pub bond: i128,
+    pub reason: Symbol,
+    pub challenged_at: u64,
+    /// Deadline by which the panel must rule.
+    pub ruling_deadline: u64,
+    /// Whether the dispute has been ruled on.
+    pub ruled: bool,
+    /// True if dispute was upheld, false if rejected.
+    pub upheld: Option<bool>,
+    /// Votes: (panel_member, upheld_vote).
+    pub votes: Vec<(Address, bool)>,
+}
+
+/// Payout record for a single reporter on a single request.
+/// Used to enforce single-claim invariant.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayoutRecord {
+    /// Total amount claimable (stake return + reward).
+    pub claimable: i128,
+    /// Whether the reporter has already claimed.
+    pub claimed: bool,
+}
+
+/// Resolution result stored after resolve() runs.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ResolutionResult {
+    /// The weighted median value.
+    pub median_value: i128,
+    /// confidence_bps from the formula in docs/confidence.md.
+    pub confidence_bps: u32,
+    /// Number of accepted (in-tolerance) reports.
+    pub n_accepted: u32,
+    /// Total slashed amount across all reporters.
+    pub total_slashed: i128,
+    /// The challenge window end timestamp.
+    pub challenge_window_end: u64,
+    /// Dust remainder accumulated from rounding.
+    pub dust: i128,
 }

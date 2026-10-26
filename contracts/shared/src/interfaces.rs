@@ -1,5 +1,6 @@
 use crate::types::{
-    Observation, ReporterStatus, ReputationInfo, Request, RequestParams, RequestStatus,
+    DisputeRecord, Observation, PayoutRecord, ReporterStatus, ReputationInfo, Request,
+    RequestParams, RequestStatus, ResolutionResult,
 };
 use soroban_sdk::{contractclient, Address, BytesN, Env, Symbol, Vec};
 
@@ -25,6 +26,9 @@ pub trait RegistryInterface {
         delta: u32,
         is_positive: bool,
     );
+
+    /// Resets reputation and bans reporter for proven fraud.
+    fn reset_reputation_fraud(env: Env, caller: Address, reporter: Address);
 
     /// Sets a reporter's status (Active, Suspended, Banned).
     fn set_status(env: Env, caller: Address, reporter: Address, status: ReporterStatus);
@@ -60,6 +64,77 @@ pub trait RequestBoardInterface {
 
     /// Returns whether the data type symbol is approved on the board.
     fn is_approved_data_type(env: Env, data_type: Symbol) -> bool;
+
+    /// Records a commitment increment (authorized callers only).
+    fn record_commit(env: Env, caller: Address, request_id: u64) -> u32;
+
+    /// Updates status of a request (authorized callers only).
+    fn set_status(env: Env, caller: Address, request_id: u64, status: RequestStatus);
+}
+
+#[contractclient(name = "ReportEngineClient")]
+pub trait ReportEngineInterface {
+    /// Reporter commits a sealed report (sha256(value || salt)) with staked funds.
+    fn commit(
+        env: Env,
+        reporter: Address,
+        request_id: u64,
+        commitment: BytesN<32>,
+        stake: i128,
+    );
+
+    /// Reporter reveals value and salt, which must match the commitment.
+    fn reveal(
+        env: Env,
+        reporter: Address,
+        request_id: u64,
+        value: i128,
+        salt: BytesN<32>,
+        evidence_hash: BytesN<32>,
+    );
+
+    /// Permissionless: resolves a request after reveal_deadline.
+    /// Idempotent — runs once per request.
+    fn resolve(env: Env, request_id: u64) -> ResolutionResult;
+
+    /// Reporter claims their payout (stake return + reward). Callable once.
+    fn claim(env: Env, reporter: Address, request_id: u64) -> i128;
+
+    /// After the challenge window with no dispute, writes to OracleFeed and sets Finalised.
+    fn finalise(env: Env, request_id: u64);
+
+    /// Callable only by Disputes: applies full fraud slash and triggers voucher liability.
+    fn apply_fraud_slash(env: Env, caller: Address, reporter: Address, request_id: u64);
+
+    /// Returns a reporter's payout record for a request.
+    fn get_payout(env: Env, reporter: Address, request_id: u64) -> Option<PayoutRecord>;
+
+    /// Returns the resolution result for a resolved request.
+    fn get_resolution(env: Env, request_id: u64) -> Option<ResolutionResult>;
+}
+
+#[contractclient(name = "DisputesClient")]
+pub trait DisputesInterface {
+    /// Challenger posts a bond to dispute a request during its challenge window.
+    fn challenge(
+        env: Env,
+        challenger: Address,
+        request_id: u64,
+        bond: i128,
+        reason: Symbol,
+    );
+
+    /// Panel member submits a vote on an active dispute.
+    fn rule(env: Env, panel_member: Address, request_id: u64, upheld: bool);
+
+    /// Retrieves the dispute record for a request.
+    fn get_dispute(env: Env, request_id: u64) -> Option<DisputeRecord>;
+
+    /// Registers a panel member in the eligible pool (admin only).
+    fn register_panel_member(env: Env, admin: Address, member: Address);
+
+    /// Removes a panel member from the eligible pool (admin only).
+    fn remove_panel_member(env: Env, admin: Address, member: Address);
 }
 
 #[contractclient(name = "OracleFeedClient")]

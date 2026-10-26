@@ -53,4 +53,19 @@ pub enum ContractError {
     VoucherNotFound = 47,
     InsufficientVoucherStake = 48,
     MaxReputationDeltaExceeded = 49,
+    // ReportEngine-specific
+    RequestNotRevealable = 50,
+    RequestNotResolvable = 51,
+    RequestNotFinalisable = 52,
+    RequestNotChallengeable = 53,
+    NoRevealedReports = 54,
+    // Disputes-specific
+    InsufficientBond = 55,
+    NotPanelMember = 56,
+    AlreadyVoted = 57,
+    PanelRulingTimeout = 58,
+    DisputeNotActive = 59,
+    // OracleFeed-specific
+    NotAuthorizedWriter = 60,
+    HistoryLimitExceeded = 61,
 }

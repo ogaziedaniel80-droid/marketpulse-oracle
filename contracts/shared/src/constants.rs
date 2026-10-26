@@ -43,3 +43,24 @@ pub const DEFAULT_VOUCHER_SLASH_FRACTION_BPS: u32 = 5_000; // 50.00% of locked s
 pub const DEFAULT_CHALLENGE_WINDOW_SECONDS: u64 = 86_400; // 24 hours
 pub const MIN_CHALLENGE_WINDOW_SECONDS: u64 = 3_600; // 1 hour minimum
 pub const MAX_CURSOR_LIMIT: u32 = 50;
+
+// Disputes (README Section 4.1 and 13)
+/// Default panel size: 3 members, majority (2/3) needed to rule.
+pub const DEFAULT_PANEL_SIZE: u32 = 3;
+/// Majority threshold: more than half of votes must agree.
+pub const PANEL_MAJORITY_NUMERATOR: u32 = 1; // > 1/2
+pub const PANEL_MAJORITY_DENOMINATOR: u32 = 2;
+/// Default ruling window (seconds): 7 days for panel to rule.
+pub const DEFAULT_RULING_WINDOW_SECONDS: u64 = 604_800; // 7 days
+/// If panel fails to rule, default outcome: dispute rejected (bond slashed to audit fund).
+pub const DEFAULT_TIMEOUT_OUTCOME_UPHELD: bool = false;
+
+// Dispute bond slashing on rejected dispute (README Section 10)
+pub const REJECTED_DISPUTE_BOND_AUDIT_FUND_BPS: u32 = 7_000; // 70% to audit fund
+pub const REJECTED_DISPUTE_BOND_TREASURY_BPS: u32 = 3_000; // 30% to treasury
+
+// OracleFeed history
+/// Maximum number of historical observations stored per (data_type, geohash) key.
+/// When exceeded, oldest entries are pruned (FIFO).
+pub const MAX_HISTORY_LENGTH: u32 = 100;
+pub const DEFAULT_HISTORY_LIMIT: u32 = 20;
