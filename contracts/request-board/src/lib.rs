@@ -479,6 +479,36 @@ impl RequestBoardContract {
         Ok(())
     }
 
+    /// Authorized caller (ReportEngine) transfers `amount` from the board's escrow to `recipient`.
+    /// Used during resolve() to pay out bounty shares, treasury fee, audit fund, etc.
+    pub fn release_funds(
+        env: Env,
+        caller: Address,
+        request_id: u64,
+        recipient: Address,
+        amount: i128,
+    ) -> Result<(), ContractError> {
+        caller.require_auth();
+        Self::assert_authorized(&env, &caller)?;
+
+        if amount <= 0 {
+            return Ok(()); // no-op for zero/negative amounts
+        }
+
+        let req_key = DataKey::Request(request_id);
+        let request: Request = env
+            .storage()
+            .persistent()
+            .get(&req_key)
+            .ok_or(ContractError::RequestNotFound)?;
+
+        let contract_addr = env.current_contract_address();
+        let token_client = token::Client::new(&env, &request.token);
+        token_client.transfer(&contract_addr, &recipient, &amount);
+
+        Ok(())
+    }
+
     pub fn set_authorized_caller(
         env: Env,
         admin: Address,

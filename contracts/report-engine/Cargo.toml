@@ -14,3 +14,8 @@ marketpulse-shared = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
+marketpulse-shared = { workspace = true }
+marketpulse-registry = { workspace = true, features = ["testutils"] }
+marketpulse-request-board = { workspace = true, features = ["testutils"] }
+marketpulse-oracle-feed = { workspace = true, features = ["testutils"] }
+proptest = { workspace = true }
