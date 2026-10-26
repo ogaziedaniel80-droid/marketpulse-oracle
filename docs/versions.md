@@ -44,6 +44,6 @@ _Wasm sizes compiled via `stellar contract build` in release profile (`wasm32v1-
 | `marketpulse_shared`        | _(library crate)_          | N/A           | N/A                                                                | Production Types & Math |
 | `marketpulse_registry`      | **16,480 bytes** (16.1 KB) | 19,567 bytes  | `1ab51890ed23c378c0035271064062258b156012deb72261b8a4b59e415b8e79` | Implemented & Tested    |
 | `marketpulse_request_board` | **14,646 bytes** (14.3 KB) | 16,448 bytes  | `1d18d92248861902f76f478533b1b9d3e7eebaacdc08ef068b53478ecf44cfb7` | Implemented & Tested    |
-| `marketpulse_report_engine` | 432 bytes                  | 451 bytes     | `f120df5b7be813ce4ca9f92ca3a7dacf2c061512a73ea54100a657069afa2f2e` | Scaffolded (Wave 1)     |
-| `marketpulse_disputes`      | 432 bytes                  | 451 bytes     | `f120df5b7be813ce4ca9f92ca3a7dacf2c061512a73ea54100a657069afa2f2e` | Scaffolded (Wave 1)     |
-| `marketpulse_oracle_feed`   | 432 bytes                  | 451 bytes     | `f120df5b7be813ce4ca9f92ca3a7dacf2c061512a73ea54100a657069afa2f2e` | Scaffolded (Wave 1)     |
+| `marketpulse_report_engine` | (pending rebuild) | —     | — | **Implemented & Tested (v2)** |
+| `marketpulse_disputes`      | (pending rebuild) | —     | — | **Implemented & Tested (v2)** |
+| `marketpulse_oracle_feed`   | (pending rebuild) | —     | — | **Implemented & Tested (v2)** |
