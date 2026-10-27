@@ -23,6 +23,10 @@ Per project engineering rules, all tooling and dependencies are pinned to exact 
 | **Zod**              | `^3.23.8`                                           | Schema validation                                  |
 | **pg**               | `8.23.1`                                            | PostgreSQL client & connection pooling             |
 | **pg-mem**           | `3.0.14`                                            | In-memory PostgreSQL unit testing adapter          |
+| **Fastify**          | `5.2.1`                                             | High-performance REST API framework                |
+| **Vitest**           | `5.0.5`                                             | Unit and integration test runner                   |
+| **Supertest**        | `7.0.0`                                             | HTTP assertion library                             |
+| **yaml**             | `2.7.0`                                             | YAML parser and serializer for OpenAPI spec        |
 | **Proptest**         | `1.12.0`                                            | Property-based testing                             |
 
 ---

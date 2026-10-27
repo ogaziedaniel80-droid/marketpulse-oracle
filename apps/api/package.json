@@ -8,13 +8,21 @@
     "build": "tsc -b",
     "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('API tests passing')\""
+    "test": "vitest run"
   },
   "dependencies": {
-    "@marketpulse/shared": "workspace:*"
+    "@fastify/cors": "^11.3.1",
+    "@fastify/rate-limit": "^11.2.1",
+    "@marketpulse/shared": "workspace:*",
+    "fastify": "^5.12.7",
+    "yaml": "^2.9.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
-    "typescript": "^5.6.3"
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.1",
+    "typescript": "^5.6.3",
+    "vitest": "^5.0.5"
   }
 }

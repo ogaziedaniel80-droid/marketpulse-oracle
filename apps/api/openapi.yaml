@@ -1,0 +1,613 @@
+openapi: 3.1.0
+info:
+  title: MarketPulse Oracle API
+  description: >
+    A crowd-sourced, stake-backed local data oracle for West Africa on Stellar Soroban.
+    Provides verified market staple prices, fuel availability, road conditions, and power outage feeds.
+  version: 0.1.0
+  contact:
+    name: MarketPulse Protocol Team
+servers:
+  - url: http://localhost:4000
+    description: Local development server
+  - url: https://api.marketpulse.network
+    description: Production gateway
+
+paths:
+  /v1/observations:
+    get:
+      summary: Query finalised observations
+      description: Query finalised oracle observations filtered by data_type, geohash prefix, and date range.
+      security:
+        - BearerApiKey: []
+      parameters:
+        - name: data_type
+          in: query
+          schema:
+            type: string
+          example: RICE50
+        - name: geohash
+          in: query
+          schema:
+            type: string
+          example: s14b
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated observation list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationListResponse'
+
+  /v1/observations/latest:
+    get:
+      summary: Get latest observation
+      description: Returns the latest finalised observation for a data type and market or geohash.
+      security:
+        - BearerApiKey: []
+      parameters:
+        - name: data_type
+          in: query
+          required: true
+          schema:
+            type: string
+          example: RICE50
+        - name: market
+          in: query
+          schema:
+            type: string
+          example: ng-lagos-mile12
+        - name: geohash
+          in: query
+          schema:
+            type: string
+          example: s14b3k9x
+      responses:
+        '200':
+          description: Latest observation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '404':
+          description: Observation not found
+
+  /v1/markets:
+    get:
+      summary: List supported markets
+      description: Returns all supported physical markets with geohash coordinates and regional metadata.
+      security:
+        - BearerApiKey: []
+      responses:
+        '200':
+          description: List of supported markets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketsResponse'
+
+  /v1/datatypes:
+    get:
+      summary: List supported data types
+      description: Returns active launch data types and planned second-wave specifications with units and tolerances.
+      security:
+        - BearerApiKey: []
+      responses:
+        '200':
+          description: Supported data types
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTypesResponse'
+
+  /v1/requests:
+    post:
+      summary: Create data request
+      description: Buyer posts a data request escrowing USDC bounty or initiating fiat billing.
+      security:
+        - BearerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequestPayload'
+      responses:
+        '201':
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRequestResponse'
+
+  /v1/requests/{id}:
+    get:
+      summary: Get request details
+      description: Status, report counts, resolution progress, and observation for a given request.
+      security:
+        - BearerApiKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDetails'
+        '404':
+          description: Request not found
+
+  /v1/webhooks:
+    post:
+      summary: Subscribe webhook
+      description: Register webhook URL for event subscriptions (e.g. observation finalised, request cancelled).
+      security:
+        - BearerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookPayload'
+      responses:
+        '201':
+          description: Webhook registered with signing secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+
+  /v1/auth/otp/request:
+    post:
+      summary: Request SMS OTP
+      description: Initiates phone verification via SMS. Phone number is immediately salted and hashed (no plain text stored).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: '+2348012345678'
+                country_code:
+                  type: string
+                  default: 'NG'
+      responses:
+        '200':
+          description: OTP dispatched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  phone_hash:
+                    type: string
+                  expires_in_seconds:
+                    type: integer
+
+  /v1/auth/otp/verify:
+    post:
+      summary: Verify SMS OTP
+      description: Verifies OTP code and returns a 30-day reporter session token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone_hash, otp]
+              properties:
+                phone_hash:
+                  type: string
+                otp:
+                  type: string
+                  example: '123456'
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_token:
+                    type: string
+                  is_enrolled:
+                    type: boolean
+
+  /v1/reporters:
+    post:
+      summary: Enroll reporter
+      description: Associates passkey wallet with phone session and enrolls into Registry contract.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [session_token, wallet_address]
+              properties:
+                session_token:
+                  type: string
+                wallet_address:
+                  type: string
+                  example: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      responses:
+        '201':
+          description: Reporter enrolled successfully
+
+  /v1/tasks:
+    get:
+      summary: List assigned tasks
+      description: Returns active reporting tasks assigned to the authenticated reporter.
+      security:
+        - ReporterSessionToken: []
+      responses:
+        '200':
+          description: List of tasks
+
+  /v1/evidence:
+    post:
+      summary: Upload evidence
+      description: Uploads evidence photo/receipt with client-verified SHA-256 hash. Strips EXIF for privacy.
+      security:
+        - ReporterSessionToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [request_id, client_sha256, content_base64]
+              properties:
+                request_id:
+                  type: string
+                client_sha256:
+                  type: string
+                content_base64:
+                  type: string
+      responses:
+        '201':
+          description: Evidence verified, stripped, and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  evidence_hash:
+                    type: string
+                  storage_url:
+                    type: string
+                  exif_stripped_url:
+                    type: string
+
+  /v1/relay:
+    post:
+      summary: Submit sponsored transaction
+      description: Relayer wraps signed Soroban transaction in fee-bump; reporters never need XLM.
+      security:
+        - ReporterSessionToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transaction_xdr]
+              properties:
+                transaction_xdr:
+                  type: string
+      responses:
+        '200':
+          description: Transaction sponsored and relayed
+
+  /v1/me/earnings:
+    get:
+      summary: Get reporter earnings
+      description: Balances, pending claims, and complete slash penalty history with reason codes.
+      security:
+        - ReporterSessionToken: []
+      responses:
+        '200':
+          description: Reporter earnings summary
+
+  /v1/admin/reporters/{id}/suspend:
+    post:
+      summary: Suspend reporter (Admin)
+      description: Restricts reporter participation. Audit logged in admin_actions.
+      security:
+        - AdminKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                action:
+                  type: string
+                  enum: [suspend, reinstate]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Reporter status updated
+
+  /v1/admin/flags:
+    get:
+      summary: List anomaly flags (Admin)
+      description: Returns evidence duplication, geo plausibility, and clustering flags.
+      security:
+        - AdminKey: []
+      responses:
+        '200':
+          description: List of flags
+
+  /v1/admin/audits/schedule:
+    post:
+      summary: Schedule audit (Admin)
+      description: Schedules a ground-truth physical audit for a request. Audit logged.
+      security:
+        - AdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [request_id]
+              properties:
+                request_id:
+                  type: string
+                sample_rate_bps:
+                  type: integer
+                  default: 500
+      responses:
+        '201':
+          description: Audit scheduled
+
+  /v1/admin/datatypes:
+    post:
+      summary: Register data type (Admin)
+      description: Registers or updates approved data type specification. Audit logged.
+      security:
+        - AdminKey: []
+      responses:
+        '201':
+          description: Data type registered
+
+components:
+  securitySchemes:
+    BearerApiKey:
+      type: http
+      scheme: bearer
+      description: Buyer API key passed as Bearer token
+    ReporterSessionToken:
+      type: http
+      scheme: bearer
+      description: Reporter session token
+    AdminKey:
+      type: apiKey
+      in: header
+      name: x-admin-key
+      description: Administrative key
+
+  schemas:
+    Observation:
+      type: object
+      required:
+        - data_type
+        - market
+        - geohash
+        - value
+        - decimals
+        - currency
+        - n_reports
+        - confidence_bps
+        - finalised_at
+        - request_id
+        - challenge_status
+      properties:
+        data_type:
+          type: string
+          example: RICE50
+        market:
+          type: string
+          example: ng-lagos-mile12
+        geohash:
+          type: string
+          example: s14b3k9x
+        value:
+          type: string
+          example: '8250000'
+        decimals:
+          type: integer
+          example: 2
+        currency:
+          type: string
+          example: NGN
+        n_reports:
+          type: integer
+          example: 9
+        confidence_bps:
+          type: integer
+          example: 8700
+        finalised_at:
+          type: string
+          format: date-time
+          example: '2026-01-15T09:42:11Z'
+        request_id:
+          type: string
+          example: '12345'
+        challenge_status:
+          type: string
+          example: closed
+        evidence_bundle_url:
+          type: string
+          example: 'https://storage.marketpulse.local/bundle/12345'
+
+    ObservationListResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+
+    MarketsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        markets:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              city:
+                type: string
+              country_code:
+                type: string
+              geohash:
+                type: string
+
+    DataTypesResponse:
+      type: object
+      properties:
+        launch_types:
+          type: object
+        planned_types:
+          type: object
+
+    CreateRequestPayload:
+      type: object
+      required:
+        - data_type
+        - geohash
+        - bounty_usdc
+      properties:
+        data_type:
+          type: string
+          example: RICE50
+        geohash:
+          type: string
+          example: s14b3k9x
+        bounty_usdc:
+          type: number
+          example: 5.0
+        funding_method:
+          type: string
+          enum: [usdc_onchain, fiat_paystack, fiat_flutterwave]
+          default: usdc_onchain
+        buyer_email:
+          type: string
+          format: email
+        tolerance_bps:
+          type: integer
+          default: 800
+
+    CreateRequestResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        status:
+          type: string
+        data_type:
+          type: string
+        geohash:
+          type: string
+        bounty_usdc:
+          type: number
+        commit_deadline:
+          type: string
+          format: date-time
+        reveal_deadline:
+          type: string
+          format: date-time
+
+    RequestDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        data_type:
+          type: string
+        geohash:
+          type: string
+        report_counts:
+          type: object
+
+    CreateWebhookPayload:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            type: string
+
+    WebhookResponse:
+      type: object
+      properties:
+        webhook_id:
+          type: string
+        url:
+          type: string
+        secret:
+          type: string
+        status:
+          type: string
