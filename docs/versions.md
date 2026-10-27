@@ -21,6 +21,8 @@ Per project engineering rules, all tooling and dependencies are pinned to exact 
 | **Turborepo**        | `^2.11.10`                                          | Monorepo build and task pipeline                   |
 | **TypeScript**       | `5.9.3`                                             | Typechecker                                        |
 | **Zod**              | `^3.23.8`                                           | Schema validation                                  |
+| **pg**               | `8.23.1`                                            | PostgreSQL client & connection pooling             |
+| **pg-mem**           | `3.0.14`                                            | In-memory PostgreSQL unit testing adapter          |
 | **Proptest**         | `1.12.0`                                            | Property-based testing                             |
 
 ---

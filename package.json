@@ -2,6 +2,7 @@
   "name": "marketpulse-oracle",
   "private": true,
   "description": "A crowd-sourced, stake-backed local data oracle for West Africa on Stellar Soroban",
+  "type": "module",
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "turbo dev",
