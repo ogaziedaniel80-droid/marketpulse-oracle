@@ -27,6 +27,9 @@ Per project engineering rules, all tooling and dependencies are pinned to exact 
 | **Vitest**           | `5.0.5`                                             | Unit and integration test runner                   |
 | **Supertest**        | `7.0.0`                                             | HTTP assertion library                             |
 | **yaml**             | `2.7.0`                                             | YAML parser and serializer for OpenAPI spec        |
+| **BullMQ**           | `5.41.0`                                            | Redis-backed distributed task queue                |
+| **ioredis**          | `6.0.0`                                             | Redis client                                       |
+| **prom-client**      | `15.1.3`                                            | Prometheus metrics exporter                        |
 | **Proptest**         | `1.12.0`                                            | Property-based testing                             |
 
 ---
