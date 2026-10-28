@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(dead_code, clippy::needless_borrows_for_generic_args)]
 
 //! Disputes — Challenge, panel selection, ruling, bond handling.
 //!
@@ -13,9 +14,9 @@
 //! See README sections 4.1, 11, 13.
 
 use marketpulse_shared::{
-    bps_mul, ContractError, DisputeRecord, Request, RequestStatus,
+    bps_mul, ContractError, DisputeRecord, Request, RequestStatus, DEFAULT_PANEL_SIZE,
+    DEFAULT_RULING_WINDOW_SECONDS, DEFAULT_TIMEOUT_OUTCOME_UPHELD,
     REJECTED_DISPUTE_BOND_AUDIT_FUND_BPS,
-    DEFAULT_PANEL_SIZE, DEFAULT_RULING_WINDOW_SECONDS, DEFAULT_TIMEOUT_OUTCOME_UPHELD,
 };
 use soroban_sdk::{
     contract, contractevent, contractimpl, contracttype, token, Address, BytesN, Env, Symbol, Vec,
@@ -80,18 +81,13 @@ mod report_engine_client {
 
     #[contractclient(name = "ReportEngineClient")]
     pub trait ReportEngineInterface {
-        fn apply_fraud_slash(
-            env: Env,
-            caller: Address,
-            reporter: Address,
-            request_id: u64,
-        );
+        fn apply_fraud_slash(env: Env, caller: Address, reporter: Address, request_id: u64);
     }
 }
 
 mod request_board_client {
-    use soroban_sdk::{contractclient, Address, Env};
     use marketpulse_shared::{Request, RequestStatus};
+    use soroban_sdk::{contractclient, Address, Env};
 
     #[contractclient(name = "RequestBoardClient")]
     pub trait RequestBoardInterface {
@@ -743,7 +739,8 @@ impl DisputesContract {
                 .unwrap_or(contract_addr.clone());
 
             let audit_share = bps_mul(dispute.bond, REJECTED_DISPUTE_BOND_AUDIT_FUND_BPS)?;
-            let treasury_share = dispute.bond
+            let treasury_share = dispute
+                .bond
                 .checked_sub(audit_share)
                 .ok_or(ContractError::MathOverflow)?;
 
@@ -758,11 +755,7 @@ impl DisputesContract {
             board.set_status(&contract_addr, &request_id, &RequestStatus::Challengeable);
         }
 
-        DisputeResolvedEvent {
-            request_id,
-            upheld,
-        }
-        .publish(env);
+        DisputeResolvedEvent { request_id, upheld }.publish(env);
 
         Ok(())
     }

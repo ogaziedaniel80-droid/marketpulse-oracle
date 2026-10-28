@@ -253,7 +253,12 @@ describe('MarketPulse Web PWA Suite', () => {
       expect(mapCfg.markers.length).toBeGreaterThanOrEqual(3);
 
       const trend = buildRechartsTrendSeries([
-        { timestampSec: 1700000000, medianPriceNgn: 80000, toleranceBps: 1000, confidenceBps: 9000 },
+        {
+          timestampSec: 1700000000,
+          medianPriceNgn: 80000,
+          toleranceBps: 1000,
+          confidenceBps: 9000,
+        },
       ]);
       expect(trend[0].lowerBandNgn).toBe(72000);
       expect(trend[0].upperBandNgn).toBe(88000);

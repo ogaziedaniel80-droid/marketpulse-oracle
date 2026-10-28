@@ -51,8 +51,7 @@ export function t(
   const targetCatalog = loadLocaleCatalog(locale);
   const enCatalog = loadLocaleCatalog('en');
 
-  const rawTemplate =
-    targetCatalog?.[section]?.[field] ?? enCatalog?.[section]?.[field] ?? key;
+  const rawTemplate = targetCatalog?.[section]?.[field] ?? enCatalog?.[section]?.[field] ?? key;
 
   if (!vars) return rawTemplate;
 

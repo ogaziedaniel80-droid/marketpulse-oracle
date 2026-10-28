@@ -20,17 +20,64 @@ async function seedDemo() {
   // 1. Pilot Markets (Abuja, Nigeria)
   const markets = [
     { id: 'mkt_wuse', name: 'Wuse Market', city: 'Abuja', country: 'NG', geohash: 's14702' },
-    { id: 'mkt_garki', name: 'Garki Model Market', city: 'Abuja', country: 'NG', geohash: 's146cr' },
-    { id: 'mkt_utako', name: 'Utako Ultra Modern Market', city: 'Abuja', country: 'NG', geohash: 's14700' },
+    {
+      id: 'mkt_garki',
+      name: 'Garki Model Market',
+      city: 'Abuja',
+      country: 'NG',
+      geohash: 's146cr',
+    },
+    {
+      id: 'mkt_utako',
+      name: 'Utako Ultra Modern Market',
+      city: 'Abuja',
+      country: 'NG',
+      geohash: 's14700',
+    },
   ];
 
   // 2. Demo Reporters (No personal data on-chain; phone numbers salted & hashed)
   const rawReporters = [
-    { label: 'Alhaji Musa (Honest #1)', phone: '+2348030000001', tier: 2, reputationBps: 8500, role: 'honest', priceNgn: 82000 },
-    { label: 'Chioma Okeke (Honest #2)', phone: '+2348030000002', tier: 2, reputationBps: 8200, role: 'honest', priceNgn: 81500 },
-    { label: 'Ibrahim Haruna (Honest #3)', phone: '+2348030000003', tier: 1, reputationBps: 7800, role: 'honest', priceNgn: 82500 },
-    { label: 'Blessing Eze (Outlier)', phone: '+2348030000004', tier: 1, reputationBps: 6000, role: 'outlier', priceNgn: 140000 },
-    { label: 'Emeka Nwachukwu (Non-Revealer)', phone: '+2348030000005', tier: 1, reputationBps: 5000, role: 'non_revealer', priceNgn: 0 },
+    {
+      label: 'Alhaji Musa (Honest #1)',
+      phone: '+2348030000001',
+      tier: 2,
+      reputationBps: 8500,
+      role: 'honest',
+      priceNgn: 82000,
+    },
+    {
+      label: 'Chioma Okeke (Honest #2)',
+      phone: '+2348030000002',
+      tier: 2,
+      reputationBps: 8200,
+      role: 'honest',
+      priceNgn: 81500,
+    },
+    {
+      label: 'Ibrahim Haruna (Honest #3)',
+      phone: '+2348030000003',
+      tier: 1,
+      reputationBps: 7800,
+      role: 'honest',
+      priceNgn: 82500,
+    },
+    {
+      label: 'Blessing Eze (Outlier)',
+      phone: '+2348030000004',
+      tier: 1,
+      reputationBps: 6000,
+      role: 'outlier',
+      priceNgn: 140000,
+    },
+    {
+      label: 'Emeka Nwachukwu (Non-Revealer)',
+      phone: '+2348030000005',
+      tier: 1,
+      reputationBps: 5000,
+      role: 'non_revealer',
+      priceNgn: 0,
+    },
   ];
 
   const reporters = rawReporters.map((r, idx) => {
@@ -106,8 +153,12 @@ async function seedDemo() {
 
   console.log(`Seeded ${markets.length} pilot markets: ${markets.map((m) => m.name).join(', ')}`);
   console.log(`Seeded ${reporters.length} demo reporters (3 honest, 1 outlier, 1 non-revealer)`);
-  console.log(`Seeded ${evidenceRecords.length} EXIF-stripped evidence objects in MockObjectStorage`);
-  console.log(`Seeded sample request #${sampleRequest.requestId} (${sampleRequest.dataType} @ ${sampleRequest.geohash})`);
+  console.log(
+    `Seeded ${evidenceRecords.length} EXIF-stripped evidence objects in MockObjectStorage`,
+  );
+  console.log(
+    `Seeded sample request #${sampleRequest.requestId} (${sampleRequest.dataType} @ ${sampleRequest.geohash})`,
+  );
   console.log('Demo seed completed successfully.');
 }
 

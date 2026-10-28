@@ -10,12 +10,12 @@ the current implementation.
 
 ## Trust assumptions (v1)
 
-| Assumption | Status |
-|---|---|
-| Stellar network and Soroban runtime are correct | Accepted |
-| Fallback arbiter multisig acts honestly | Accepted (admin multisig, time-lock upgrade path planned) |
-| Off-chain checks (EXIF, geo) are advisory only | Implemented — flags disputes, does not unilaterally slash |
-| Relayer does not custody funds | Correct — relayer only fee-sponsors, no asset custody |
+| Assumption                                      | Status                                                    |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| Stellar network and Soroban runtime are correct | Accepted                                                  |
+| Fallback arbiter multisig acts honestly         | Accepted (admin multisig, time-lock upgrade path planned) |
+| Off-chain checks (EXIF, geo) are advisory only  | Implemented — flags disputes, does not unilaterally slash |
+| Relayer does not custody funds                  | Correct — relayer only fee-sponsors, no asset custody     |
 
 ---
 
@@ -27,6 +27,7 @@ the current implementation.
 weighted median.
 
 **Mitigations implemented:**
+
 - `Registry`: new reporters start at Tier 1 with `weight_bps` ≈ 1 000–2 500 bps
   (10–25%); caps enforced per tier.
 - `Registry`: reputation builds slowly (+1 per confirmation), drops fast (−5 per
@@ -47,6 +48,7 @@ weighted median.
 submits a false value.
 
 **Mitigations implemented:**
+
 - Weighted median is robust to a minority of colluders (< 50% weight).
 - `ReportEngine`: diversity requirement parameter exists in design; not yet
   enforced on-chain (v1 TODO — see ADR 0003).
@@ -65,6 +67,7 @@ submits a false value.
 **Attack:** Reporter waits for others to reveal, then copies the most common value.
 
 **Mitigation implemented:**
+
 - `ReportEngine::commit` + `ReportEngine::reveal`: standard commit-reveal scheme.
   Commitment is `sha256(value || salt)`; value is hidden until after
   `commit_deadline`. Copying is only possible for values revealed before the
@@ -82,6 +85,7 @@ submits a false value.
 preventing resolution or driving up non-reveal counts.
 
 **Mitigation implemented:**
+
 - `ReportEngine::resolve`: non-revealers are slashed 50% of stake (default).
 - Non-reveal slash proceeds go to audit fund (30%) and treasury (20%), not the
   attacker.
@@ -96,6 +100,7 @@ preventing resolution or driving up non-reveal counts.
 **Attack:** Reporter submits a hash of a recycled or stock image as evidence.
 
 **Mitigations:**
+
 - On-chain: evidence hash is stored; the contract does not validate image content.
 - Off-chain: `evidence-check` service uses pHash duplicate detection and EXIF
   analysis (README section 5). Flags are surfaced to the dispute panel.
@@ -112,6 +117,7 @@ service running.
 **Attack:** An insurance beneficiary pays reporters to submit a false trigger value.
 
 **Mitigations implemented:**
+
 - Randomised assignment (off-chain in v1): beneficiary does not know which
   reporters will be assigned until after commit.
 - Commit-reveal hides values from other reporters during the commit phase.
@@ -129,6 +135,7 @@ service running.
 **Attack:** Attacker posts many cheap requests to exhaust reporters' stake capacity.
 
 **Mitigation implemented:**
+
 - `RequestBoard::create_request`: minimum bounty enforced (`DEFAULT_MIN_BOUNTY` =
   3 USDC). Attacker must deposit real funds.
 - Requester reputation can be added as an additional gate (v1 TODO).
@@ -143,6 +150,7 @@ service running.
 challenger bonds.
 
 **Mitigation implemented:**
+
 - `Disputes::challenge`: bond must be ≥ 5× `min_stake`. Default for a standard
   request ≥ 12 500 000 minor units (1.25 USDC).
 - Rejected dispute: bond slashed 70% to audit fund, 30% to treasury. Attacker
@@ -160,6 +168,7 @@ challenger bonds.
 bans all reporters.
 
 **Mitigations planned:**
+
 - Admin key should be a multisig (M-of-N) stored in a KMS/HSM (README section 13).
 - Upgrade path should be time-locked (v1 TODO — not yet implemented in contracts).
 - Separate keys per environment and per role.
@@ -176,6 +185,7 @@ bans all reporters.
 checking staleness, quorum, or confidence, and is triggered incorrectly.
 
 **Mitigation implemented:**
+
 - `OracleFeed` exposes `confidence_bps`, `n_reports`, `finalised_at` on every
   `Observation`.
 - Reference consumer in README section 20 checks all three.
@@ -191,18 +201,18 @@ observations.
 
 ## Summary table
 
-| # | Attack | Implemented | Residual risk | Phase |
-|---|---|---|---|---|
-| 1 | Sybil swarm | Partial (stake caps, slow reputation) | Medium | Phase 3: on-chain identity |
-| 2 | Collusion / false price | Partial (median, disputes) | Medium | Phase 3: diversity enforcement |
-| 3 | Copying after reveal | Full (commit-reveal) | None | Done |
-| 4 | Commit-and-no-reveal griefing | Full (non-reveal slash) | None | Done |
-| 5 | Photo reuse | Partial (off-chain pHash) | Low | Phase 2: evidence service |
-| 6 | Reporter bribery | Partial (commit-reveal, audits) | Medium | Phase 3: on-chain assignment |
-| 7 | Spam requests | Full (min bounty) | None | Done |
-| 8 | Frivolous disputes | Full (bond sizing + slash) | None | Done |
-| 9 | Admin key compromise | Partial (multisig planned) | High | Pre-mainnet: time-lock |
-| 10 | Oracle consumer manipulation | Partial (metadata exposed) | Low | Consumer responsibility |
+| #   | Attack                        | Implemented                           | Residual risk | Phase                          |
+| --- | ----------------------------- | ------------------------------------- | ------------- | ------------------------------ |
+| 1   | Sybil swarm                   | Partial (stake caps, slow reputation) | Medium        | Phase 3: on-chain identity     |
+| 2   | Collusion / false price       | Partial (median, disputes)            | Medium        | Phase 3: diversity enforcement |
+| 3   | Copying after reveal          | Full (commit-reveal)                  | None          | Done                           |
+| 4   | Commit-and-no-reveal griefing | Full (non-reveal slash)               | None          | Done                           |
+| 5   | Photo reuse                   | Partial (off-chain pHash)             | Low           | Phase 2: evidence service      |
+| 6   | Reporter bribery              | Partial (commit-reveal, audits)       | Medium        | Phase 3: on-chain assignment   |
+| 7   | Spam requests                 | Full (min bounty)                     | None          | Done                           |
+| 8   | Frivolous disputes            | Full (bond sizing + slash)            | None          | Done                           |
+| 9   | Admin key compromise          | Partial (multisig planned)            | High          | Pre-mainnet: time-lock         |
+| 10  | Oracle consumer manipulation  | Partial (metadata exposed)            | Low           | Consumer responsibility        |
 
 ---
 

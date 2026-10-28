@@ -8,13 +8,13 @@ This guide walks a new contributor from a clean clone to running all smart contr
 
 ## 1. Prerequisites
 
-| Tool | Tested Version | Verify Command |
-|---|---|---|
-| **Rust & Cargo** | `1.96.0` (or stable `1.80+`) | `cargo --version` |
-| **Stellar CLI** | `28.0.0` | `stellar --version` |
-| **Node.js** | `v20+` LTS (`v24.13.0` tested) | `node --version` |
-| **pnpm** | `10.28.2` | `pnpm --version` |
-| **Python** | `3.11+` (`3.12.3` tested) | `python3 --version` |
+| Tool               | Tested Version                     | Verify Command           |
+| ------------------ | ---------------------------------- | ------------------------ |
+| **Rust & Cargo**   | `1.96.0` (or stable `1.80+`)       | `cargo --version`        |
+| **Stellar CLI**    | `28.0.0`                           | `stellar --version`      |
+| **Node.js**        | `v20+` LTS (`v24.13.0` tested)     | `node --version`         |
+| **pnpm**           | `10.28.2`                          | `pnpm --version`         |
+| **Python**         | `3.11+` (`3.12.3` tested)          | `python3 --version`      |
 | **Docker Compose** | v2+ (optional for container stack) | `docker compose version` |
 
 ---

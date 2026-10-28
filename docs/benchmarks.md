@@ -26,17 +26,18 @@ test snapshot written to `test_snapshots/`.
 
 ## Results at max_reports = 15
 
-| Function | Reporters | Instructions (sim) | Memory (sim) | Passes? |
-|---|---|---|---|---|
-| `commit` (×1) | 1 | < 1 M | < 50 KB | Yes |
-| `reveal` (×1) | 1 | < 1 M | < 50 KB | Yes |
-| `resolve` | 15 | < 50 M | < 200 KB | Yes |
-| `claim` (×1) | 1 | < 1 M | < 50 KB | Yes |
-| `finalise` | — | < 2 M | < 50 KB | Yes |
+| Function      | Reporters | Instructions (sim) | Memory (sim) | Passes? |
+| ------------- | --------- | ------------------ | ------------ | ------- |
+| `commit` (×1) | 1         | < 1 M              | < 50 KB      | Yes     |
+| `reveal` (×1) | 1         | < 1 M              | < 50 KB      | Yes     |
+| `resolve`     | 15        | < 50 M             | < 200 KB     | Yes     |
+| `claim` (×1)  | 1         | < 1 M              | < 50 KB      | Yes     |
+| `finalise`    | —         | < 2 M              | < 50 KB      | Yes     |
 
 > Note: Soroban's per-transaction instruction limit is 100 million instructions
 > and the memory limit is 40 MB. All operations at `max_reports = 15` are well
 > within budget. The instruction-heavy path is `resolve()`, which performs:
+>
 > - 15 Registry `reputation()` calls (cross-contract, most expensive)
 > - 1 weighted median computation (O(n log n) via insertion sort, n ≤ 15)
 > - 15 tolerance checks
@@ -69,14 +70,14 @@ test snapshot written to `test_snapshots/`.
 
 ## Stress test results
 
-| max_reports | Instructions (resolve) | Status |
-|---|---|---|
-| 5 | ~15 M | ✅ Passes |
-| 10 | ~30 M | ✅ Passes |
-| 15 | ~50 M | ✅ Passes |
-| 20 | ~70 M | ✅ Passes (theoretical; cap enforced at 15) |
-| 25 | ~90 M | ⚠️ Within limit but no margin |
-| 30 | ~115 M | ❌ Would exceed limit |
+| max_reports | Instructions (resolve) | Status                                      |
+| ----------- | ---------------------- | ------------------------------------------- |
+| 5           | ~15 M                  | ✅ Passes                                   |
+| 10          | ~30 M                  | ✅ Passes                                   |
+| 15          | ~50 M                  | ✅ Passes                                   |
+| 20          | ~70 M                  | ✅ Passes (theoretical; cap enforced at 15) |
+| 25          | ~90 M                  | ⚠️ Within limit but no margin               |
+| 30          | ~115 M                 | ❌ Would exceed limit                       |
 
 The cap of 15 is enforced at `commit()` time via `RequestBoard::record_commit`
 and at `RequestBoard::create_request` parameter validation.
@@ -85,13 +86,13 @@ and at `RequestBoard::create_request` parameter validation.
 
 ## TTL strategy
 
-| Storage type | Data | TTL ledgers | ~Duration at 5s/ledger |
-|---|---|---|---|
-| Temporary | Commitments, report entries, reporter list | 518 400 | ~30 days |
-| Temporary | Dispute seed commitments | 259 200 | ~15 days |
-| Persistent | Payout records, resolution results | 6 307 200 | ~1 year |
-| Persistent | OracleFeed observations | 6 307 200 | ~1 year |
-| Persistent | Registry reporter profiles | No expiry (instance/persistent) | — |
+| Storage type | Data                                       | TTL ledgers                     | ~Duration at 5s/ledger |
+| ------------ | ------------------------------------------ | ------------------------------- | ---------------------- |
+| Temporary    | Commitments, report entries, reporter list | 518 400                         | ~30 days               |
+| Temporary    | Dispute seed commitments                   | 259 200                         | ~15 days               |
+| Persistent   | Payout records, resolution results         | 6 307 200                       | ~1 year                |
+| Persistent   | OracleFeed observations                    | 6 307 200                       | ~1 year                |
+| Persistent   | Registry reporter profiles                 | No expiry (instance/persistent) | —                      |
 
 Workers should extend TTLs for active data before they expire. The worker
 polls `getEvents` and calls `extend_ttl` on any `CommitRecordedEvent` request

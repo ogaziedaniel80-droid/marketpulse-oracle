@@ -59,13 +59,13 @@ The compose file does not yet include a Stellar quickstart container. To add one
 append this service to `infra/docker/compose.dev.yml`:
 
 ```yaml
-  stellar-quickstart:
-    image: stellar/quickstart:testing
-    ports:
-      - "8000:8000"
-    environment:
-      - ENABLE_SOROBAN_RPC=true
-    command: --standalone --enable-soroban-rpc
+stellar-quickstart:
+  image: stellar/quickstart:testing
+  ports:
+    - '8000:8000'
+  environment:
+    - ENABLE_SOROBAN_RPC=true
+  command: --standalone --enable-soroban-rpc
 ```
 
 Then set:
@@ -77,14 +77,14 @@ export LOCAL_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
 
 ## Environment variables for local deployment
 
-| Variable | Value for local |
-|---|---|
-| `STELLAR_NETWORK` | `local` |
-| `STELLAR_RPC_URL` | `http://localhost:8000/soroban/rpc` |
+| Variable                     | Value for local                      |
+| ---------------------------- | ------------------------------------ |
+| `STELLAR_NETWORK`            | `local`                              |
+| `STELLAR_RPC_URL`            | `http://localhost:8000/soroban/rpc`  |
 | `STELLAR_NETWORK_PASSPHRASE` | `Standalone Network ; February 2017` |
-| `USDC_SAC_ID` | Deploy a test USDC SAC (see above) |
-| `TREASURY_ADDRESS` | Any funded local address |
-| `AUDIT_FUND_ADDRESS` | Any funded local address |
+| `USDC_SAC_ID`                | Deploy a test USDC SAC (see above)   |
+| `TREASURY_ADDRESS`           | Any funded local address             |
+| `AUDIT_FUND_ADDRESS`         | Any funded local address             |
 
 ## Running tests against local node
 

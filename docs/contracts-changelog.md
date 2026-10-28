@@ -169,5 +169,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     to a recipient (used by ReportEngine during resolve).
 
 ### Docs added
-  - `docs/confidence.md`, `docs/randomness.md`, `docs/threat-model.md`, `docs/benchmarks.md`
-  - `scripts/deploy-testnet.sh`, `scripts/bindings-generate.js`, `scripts/local-network.md`
+
+- `docs/confidence.md`, `docs/randomness.md`, `docs/threat-model.md`, `docs/benchmarks.md`
+- `scripts/deploy-testnet.sh`, `scripts/bindings-generate.js`, `scripts/local-network.md`

@@ -61,13 +61,13 @@ the `[0, 10_000]` range using integer arithmetic.
 
 ## Examples
 
-| Scenario | agreement_bps | quorum_bps | confidence_bps |
-|---|---|---|---|
-| 15/15 reports accepted, all equal weight | 10 000 | 10 000 | 10 000 |
-| 12/15 accepted, equal weight | 8 000 | 10 000 | 8 000 |
-| 5/5 accepted (min=5), all equal weight | 10 000 | 10 000 | 10 000 |
-| 3/5 accepted (min=5), equal weight | 6 000 | 6 000 | 3 600 |
-| 5/5 accepted but 1 outlier had 50% weight | 6 667 | 10 000 | 6 667 |
+| Scenario                                  | agreement_bps | quorum_bps | confidence_bps |
+| ----------------------------------------- | ------------- | ---------- | -------------- |
+| 15/15 reports accepted, all equal weight  | 10 000        | 10 000     | 10 000         |
+| 12/15 accepted, equal weight              | 8 000         | 10 000     | 8 000          |
+| 5/5 accepted (min=5), all equal weight    | 10 000        | 10 000     | 10 000         |
+| 3/5 accepted (min=5), equal weight        | 6 000         | 6 000      | 3 600          |
+| 5/5 accepted but 1 outlier had 50% weight | 6 667         | 10 000     | 6 667          |
 
 ---
 

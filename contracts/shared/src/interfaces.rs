@@ -75,13 +75,7 @@ pub trait RequestBoardInterface {
 #[contractclient(name = "ReportEngineClient")]
 pub trait ReportEngineInterface {
     /// Reporter commits a sealed report (sha256(value || salt)) with staked funds.
-    fn commit(
-        env: Env,
-        reporter: Address,
-        request_id: u64,
-        commitment: BytesN<32>,
-        stake: i128,
-    );
+    fn commit(env: Env, reporter: Address, request_id: u64, commitment: BytesN<32>, stake: i128);
 
     /// Reporter reveals value and salt, which must match the commitment.
     fn reveal(
@@ -116,13 +110,7 @@ pub trait ReportEngineInterface {
 #[contractclient(name = "DisputesClient")]
 pub trait DisputesInterface {
     /// Challenger posts a bond to dispute a request during its challenge window.
-    fn challenge(
-        env: Env,
-        challenger: Address,
-        request_id: u64,
-        bond: i128,
-        reason: Symbol,
-    );
+    fn challenge(env: Env, challenger: Address, request_id: u64, bond: i128, reason: Symbol);
 
     /// Panel member submits a vote on an active dispute.
     fn rule(env: Env, panel_member: Address, request_id: u64, upheld: bool);

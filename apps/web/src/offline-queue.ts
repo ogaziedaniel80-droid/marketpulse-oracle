@@ -1,11 +1,7 @@
 export type OfflineActionType = 'commit' | 'reveal';
 
 export type OfflineQueueState =
-  | 'QUEUED_OFFLINE'
-  | 'RETRYING'
-  | 'SYNCED'
-  | 'EXPIRED_DEADLINE'
-  | 'FAILED';
+  'QUEUED_OFFLINE' | 'RETRYING' | 'SYNCED' | 'EXPIRED_DEADLINE' | 'FAILED';
 
 export interface OfflineQueueItem {
   idempotencyKey: string;

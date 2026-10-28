@@ -7,11 +7,11 @@
 
 ## 1. Severity Classification
 
-| Severity | Definition | Response SLA |
-|---|---|---|
-| **P0 (Critical)** | Smart contract exploit, escrow drain risk, or admin/arbiter key compromise | Immediate (< 15 min): Execute [`pause-procedure.md`](./pause-procedure.md) |
-| **P1 (High)** | Coordinated Sybil cartel biasing finalised observations, or Relayer/RPC outage > 30 min | < 1 hour: Trigger emergency dispute & rotate RPC/Relayer |
-| **P2 (Medium)** | Elevated outlier slash rate (> 25%) due to sudden FX/commodity shock | < 4 hours: Review tolerance band in `docs/parameter-log.md` |
+| Severity          | Definition                                                                              | Response SLA                                                               |
+| ----------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **P0 (Critical)** | Smart contract exploit, escrow drain risk, or admin/arbiter key compromise              | Immediate (< 15 min): Execute [`pause-procedure.md`](./pause-procedure.md) |
+| **P1 (High)**     | Coordinated Sybil cartel biasing finalised observations, or Relayer/RPC outage > 30 min | < 1 hour: Trigger emergency dispute & rotate RPC/Relayer                   |
+| **P2 (Medium)**   | Elevated outlier slash rate (> 25%) due to sudden FX/commodity shock                    | < 4 hours: Review tolerance band in `docs/parameter-log.md`                |
 
 ## 2. Triage & Containment Workflow
 

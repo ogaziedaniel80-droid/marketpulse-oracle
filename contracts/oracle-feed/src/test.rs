@@ -45,7 +45,7 @@ fn test_version() {
 
 #[test]
 fn test_initialize_twice_rejected() {
-    let (env, client, admin, writer) = setup();
+    let (_env, client, admin, writer) = setup();
     let res = client.try_initialize(&admin, &writer);
     assert_eq!(res.unwrap_err().unwrap(), ContractError::AlreadyInitialized);
 }
@@ -58,7 +58,10 @@ fn test_write_and_get_latest() {
     client.write_observation(&writer, &obs);
 
     let latest = client
-        .get_latest(&Symbol::new(&env, "RICE50"), &BytesN::from_array(&env, b"s14b3k9x"))
+        .get_latest(
+            &Symbol::new(&env, "RICE50"),
+            &BytesN::from_array(&env, b"s14b3k9x"),
+        )
         .unwrap();
     assert_eq!(latest.value, 825_000);
     assert_eq!(latest.request_id, 1);
@@ -71,7 +74,10 @@ fn test_unauthorized_writer_rejected() {
     let rogue = Address::generate(&env);
     let obs = make_obs(&env, 2, 900_000, 2_000_000);
     let res = client.try_write_observation(&rogue, &obs);
-    assert_eq!(res.unwrap_err().unwrap(), ContractError::NotAuthorizedWriter);
+    assert_eq!(
+        res.unwrap_err().unwrap(),
+        ContractError::NotAuthorizedWriter
+    );
 }
 
 #[test]
@@ -185,7 +191,10 @@ fn test_set_writer_admin_only() {
     // New writer succeeds:
     client.write_observation(&new_writer, &obs);
     let latest = client
-        .get_latest(&Symbol::new(&env, "RICE50"), &BytesN::from_array(&env, b"s14b3k9x"))
+        .get_latest(
+            &Symbol::new(&env, "RICE50"),
+            &BytesN::from_array(&env, b"s14b3k9x"),
+        )
         .unwrap();
     assert_eq!(latest.value, 111_000);
 }
@@ -201,7 +210,10 @@ fn test_write_overwrites_latest() {
     client.write_observation(&writer, &obs2);
 
     let latest = client
-        .get_latest(&Symbol::new(&env, "RICE50"), &BytesN::from_array(&env, b"s14b3k9x"))
+        .get_latest(
+            &Symbol::new(&env, "RICE50"),
+            &BytesN::from_array(&env, b"s14b3k9x"),
+        )
         .unwrap();
     assert_eq!(latest.value, 200_000);
     assert_eq!(latest.request_id, 2);

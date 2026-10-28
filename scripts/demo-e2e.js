@@ -45,7 +45,9 @@ async function runDemoE2e() {
   }
   const createdReq = JSON.parse(createRes.body);
   const requestId = createdReq.request_id;
-  console.log(`   -> Request #${requestId} created. Escrowed Bounty: 50.00 USDC | Min Stake: 10.00 USDC\n`);
+  console.log(
+    `   -> Request #${requestId} created. Escrowed Bounty: 50.00 USDC | Min Stake: 10.00 USDC\n`,
+  );
 
   // 2. Enroll 5 Demo Reporters
   console.log('2. Enrolling 5 demo reporters (3 Honest, 1 Outlier, 1 Non-Revealer)...');
@@ -154,17 +156,9 @@ async function runDemoE2e() {
       reporter_address: rep.walletAddress,
       bounty_reward: rep.role === 'HONEST' ? '167500000' : '0', // 15.00 USDC bounty + 1.75 USDC slash bonus
       stake_returned:
-        rep.role === 'HONEST'
-          ? '100000000'
-          : rep.role === 'OUTLIER'
-            ? '75000000'
-            : '20000000',
+        rep.role === 'HONEST' ? '100000000' : rep.role === 'OUTLIER' ? '75000000' : '20000000',
       slashed_amount:
-        rep.role === 'OUTLIER'
-          ? '25000000'
-          : rep.role === 'NON_REVEALER'
-            ? '80000000'
-            : '0',
+        rep.role === 'OUTLIER' ? '25000000' : rep.role === 'NON_REVEALER' ? '80000000' : '0',
       slash_reason:
         rep.role === 'OUTLIER'
           ? 'OUTLIER_DEVIATION (25% gentle slash)'
@@ -195,24 +189,50 @@ async function runDemoE2e() {
   const dashboardHtml = renderPwaHtml('en');
 
   console.log('5. Cross-Layer Verification:');
-  console.log(`   - Fastify REST API (/v1/observations/latest): value=${apiObs.value} NGN, confidence=${apiObs.confidence_bps} bps`);
-  console.log(`   - Worker Indexer Mirror (store.observations): request_id=${indexedObs?.request_id}, status=finalised`);
+  console.log(
+    `   - Fastify REST API (/v1/observations/latest): value=${apiObs.value} NGN, confidence=${apiObs.confidence_bps} bps`,
+  );
+  console.log(
+    `   - Worker Indexer Mirror (store.observations): request_id=${indexedObs?.request_id}, status=finalised`,
+  );
   console.log(`   - Web Dashboard (PWA HTML): rendered=${dashboardHtml.includes('Wuse Market')}`);
 
   // 6. Print Payout & Slashing Reconciliation Table
   console.log('\n6. Payouts & Slashing Reconciliation (USDC):');
-  console.log('-----------------------------------------------------------------------------------------');
-  console.log('Reporter          | Role         | Revealed  | Stake   | Slashed   | Reward    | Net PnL');
-  console.log('-----------------------------------------------------------------------------------------');
-  console.log('Alhaji Musa       | HONEST       | 82,000    | 10.00   |  0.00     | +16.75    | +16.75 USDC');
-  console.log('Chioma Okeke      | HONEST       | 81,500    | 10.00   |  0.00     | +16.75    | +16.75 USDC');
-  console.log('Ibrahim Haruna    | HONEST       | 82,500    | 10.00   |  0.00     | +16.75    | +16.75 USDC');
-  console.log('Blessing Eze      | OUTLIER      | 140,000   | 10.00   | -2.50(25%)|   0.00    |  -2.50 USDC');
-  console.log('Emeka Nwachukwu   | NON_REVEALER | (missed)  | 10.00   | -8.00(80%)|   0.00    |  -8.00 USDC');
-  console.log('-----------------------------------------------------------------------------------------');
+  console.log(
+    '-----------------------------------------------------------------------------------------',
+  );
+  console.log(
+    'Reporter          | Role         | Revealed  | Stake   | Slashed   | Reward    | Net PnL',
+  );
+  console.log(
+    '-----------------------------------------------------------------------------------------',
+  );
+  console.log(
+    'Alhaji Musa       | HONEST       | 82,000    | 10.00   |  0.00     | +16.75    | +16.75 USDC',
+  );
+  console.log(
+    'Chioma Okeke      | HONEST       | 81,500    | 10.00   |  0.00     | +16.75    | +16.75 USDC',
+  );
+  console.log(
+    'Ibrahim Haruna    | HONEST       | 82,500    | 10.00   |  0.00     | +16.75    | +16.75 USDC',
+  );
+  console.log(
+    'Blessing Eze      | OUTLIER      | 140,000   | 10.00   | -2.50(25%)|   0.00    |  -2.50 USDC',
+  );
+  console.log(
+    'Emeka Nwachukwu   | NON_REVEALER | (missed)  | 10.00   | -8.00(80%)|   0.00    |  -8.00 USDC',
+  );
+  console.log(
+    '-----------------------------------------------------------------------------------------',
+  );
   console.log('Treasury Fee (10% of 50 USDC bounty):  5.00 USDC');
-  console.log('Slashed Stake Pool (2.50 + 8.00):     10.50 USDC -> 5.25 Accepted Bonus | 3.15 Audit Fund | 2.10 Treasury');
-  console.log('-----------------------------------------------------------------------------------------\n');
+  console.log(
+    'Slashed Stake Pool (2.50 + 8.00):     10.50 USDC -> 5.25 Accepted Bonus | 3.15 Audit Fund | 2.10 Treasury',
+  );
+  console.log(
+    '-----------------------------------------------------------------------------------------\n',
+  );
 
   await api.close();
   console.log('Demo E2E completed successfully.');

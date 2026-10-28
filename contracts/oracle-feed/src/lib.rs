@@ -7,9 +7,7 @@
 //! Pruning is FIFO: when the bound is exceeded the oldest entry is removed.
 //! See README sections 8.3 and 20.
 
-use marketpulse_shared::{
-    ContractError, Observation, DEFAULT_HISTORY_LIMIT, MAX_HISTORY_LENGTH,
-};
+use marketpulse_shared::{ContractError, Observation, DEFAULT_HISTORY_LIMIT, MAX_HISTORY_LENGTH};
 use soroban_sdk::{
     contract, contractevent, contractimpl, contracttype, Address, BytesN, Env, Symbol, Vec,
 };
@@ -67,11 +65,7 @@ impl OracleFeedContract {
     // Initialisation
     // -----------------------------------------------------------------------
 
-    pub fn initialize(
-        env: Env,
-        admin: Address,
-        writer: Address,
-    ) -> Result<(), ContractError> {
+    pub fn initialize(env: Env, admin: Address, writer: Address) -> Result<(), ContractError> {
         admin.require_auth();
         if env.storage().instance().has(&DataKey::Admin) {
             return Err(ContractError::AlreadyInitialized);
@@ -98,19 +92,13 @@ impl OracleFeedContract {
         caller.require_auth();
         Self::assert_writer(&env, &caller)?;
 
-        let latest_key = DataKey::Latest(
-            observation.data_type.clone(),
-            observation.geohash.clone(),
-        );
-        let history_key = DataKey::History(
-            observation.data_type.clone(),
-            observation.geohash.clone(),
-        );
+        let latest_key =
+            DataKey::Latest(observation.data_type.clone(), observation.geohash.clone());
+        let history_key =
+            DataKey::History(observation.data_type.clone(), observation.geohash.clone());
 
         // Update latest
-        env.storage()
-            .persistent()
-            .set(&latest_key, &observation);
+        env.storage().persistent().set(&latest_key, &observation);
 
         // Update history (bounded, FIFO pruning)
         let mut history: Vec<Observation> = env
@@ -130,9 +118,7 @@ impl OracleFeedContract {
 
         // Extend TTL — persistent observations should live long
         let ttl: u32 = 6_307_200; // ~1 year
-        env.storage()
-            .persistent()
-            .extend_ttl(&latest_key, ttl, ttl);
+        env.storage().persistent().extend_ttl(&latest_key, ttl, ttl);
         env.storage()
             .persistent()
             .extend_ttl(&history_key, ttl, ttl);
@@ -155,11 +141,7 @@ impl OracleFeedContract {
     // -----------------------------------------------------------------------
 
     /// Fetches the latest finalised observation for a data_type + geohash.
-    pub fn get_latest(
-        env: Env,
-        data_type: Symbol,
-        geohash: BytesN<8>,
-    ) -> Option<Observation> {
+    pub fn get_latest(env: Env, data_type: Symbol, geohash: BytesN<8>) -> Option<Observation> {
         env.storage()
             .persistent()
             .get(&DataKey::Latest(data_type, geohash))
@@ -193,11 +175,7 @@ impl OracleFeedContract {
 
         // Return most recent `effective_limit` entries (tail of the vec)
         let mut result = Vec::new(&env);
-        let start = if total > effective_limit {
-            total - effective_limit
-        } else {
-            0
-        };
+        let start = total.saturating_sub(effective_limit);
         for i in start..total {
             result.push_back(history.get(i).unwrap());
         }
@@ -216,11 +194,7 @@ impl OracleFeedContract {
     // -----------------------------------------------------------------------
 
     /// Update the authorised writer (e.g., after ReportEngine upgrade).
-    pub fn set_writer(
-        env: Env,
-        admin: Address,
-        writer: Address,
-    ) -> Result<(), ContractError> {
+    pub fn set_writer(env: Env, admin: Address, writer: Address) -> Result<(), ContractError> {
         admin.require_auth();
         Self::assert_admin(&env, &admin)?;
         env.storage()

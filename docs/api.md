@@ -7,11 +7,11 @@
 
 ## 1. Authentication & Rate Limiting
 
-| Endpoint Group | Header / Scheme | Details |
-|---|---|---|
-| **Buyer Endpoints** | `x-api-key: mp_live_...` | Hashed (`SHA-256`) before lookup. Enforces tier rate limits (`standard`: 100 req/min, `enterprise`: 1000 req/min). |
-| **Reporter Endpoints** | `Authorization: Bearer mp_rep_...` | Issued after SMS OTP verification (`POST /v1/auth/otp/verify`). |
-| **Admin Endpoints** | `x-admin-key: ...` | Restricted to multisig/admin operators; every mutating call writes an immutable entry to `admin_actions`. |
+| Endpoint Group         | Header / Scheme                    | Details                                                                                                            |
+| ---------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Buyer Endpoints**    | `x-api-key: mp_live_...`           | Hashed (`SHA-256`) before lookup. Enforces tier rate limits (`standard`: 100 req/min, `enterprise`: 1000 req/min). |
+| **Reporter Endpoints** | `Authorization: Bearer mp_rep_...` | Issued after SMS OTP verification (`POST /v1/auth/otp/verify`).                                                    |
+| **Admin Endpoints**    | `x-admin-key: ...`                 | Restricted to multisig/admin operators; every mutating call writes an immutable entry to `admin_actions`.          |
 
 ---
 

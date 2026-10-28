@@ -90,9 +90,7 @@ function main() {
   for (const contract of CONTRACTS) {
     const contractId = localEnv[contract.envKey];
     if (!contractId) {
-      console.warn(
-        `  [SKIP] ${contract.name}: ${contract.envKey} not set in .env.local`
-      );
+      console.warn(`  [SKIP] ${contract.name}: ${contract.envKey} not set in .env.local`);
       allOk = false;
       continue;
     }

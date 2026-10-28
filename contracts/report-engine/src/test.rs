@@ -67,14 +67,7 @@ impl TestHarness {
         // ReportEngine
         let engine_id = env.register(ReportEngineContract, ());
         let engine = ReportEngineContractClient::new(&env, &engine_id);
-        engine.initialize(
-            &admin,
-            &reg_id,
-            &board_id,
-            &feed_id,
-            &treasury,
-            &audit_fund,
-        );
+        engine.initialize(&admin, &reg_id, &board_id, &feed_id, &treasury, &audit_fund);
 
         // Authorize engine in Registry and Board
         registry.set_authorized_caller(&admin, &engine_id, &true);
@@ -159,7 +152,6 @@ impl TestHarness {
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // Full lifecycle
 // ---------------------------------------------------------------------------
@@ -185,8 +177,12 @@ fn test_full_lifecycle_commit_reveal_resolve_claim_finalise() {
         h.enroll_reporter(&reporters[i]);
         h.mint_and_fund(&reporters[i], 10_000_000);
         let commitment = h.make_commitment(values[i], &salts[i]);
-        h.engine
-            .commit(&reporters[i], &request_id, &commitment, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &commitment,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
 
     h.advance_to_reveal(request_id);
@@ -217,7 +213,10 @@ fn test_full_lifecycle_commit_reveal_resolve_claim_finalise() {
     h.engine.finalise(&request_id);
 
     let req_final = h.board.get_request(&request_id);
-    assert_eq!(req_final.status, marketpulse_shared::RequestStatus::Finalised);
+    assert_eq!(
+        req_final.status,
+        marketpulse_shared::RequestStatus::Finalised
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -245,13 +244,19 @@ fn test_resolve_twice_is_noop() {
         h.enroll_reporter(&reporters[i]);
         h.mint_and_fund(&reporters[i], 10_000_000);
         let c = h.make_commitment(values[i], &salts[i]);
-        h.engine.commit(&reporters[i], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &c,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
     h.advance_to_reveal(request_id);
     for i in 0..3 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0xCCu8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
 
@@ -288,13 +293,19 @@ fn test_undersubscription_refunds_bounty() {
         h.enroll_reporter(&reporters[i]);
         h.mint_and_fund(&reporters[i], 10_000_000);
         let c = h.make_commitment(values[i], &salts[i]);
-        h.engine.commit(&reporters[i], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &c,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
     h.advance_to_reveal(request_id);
     for i in 0..2 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0xBBu8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
 
@@ -327,7 +338,12 @@ fn test_reveal_wrong_salt_rejected() {
     let real_salt = [1u8; 32];
     let wrong_salt = [2u8; 32];
     let commitment = h.make_commitment(value, &real_salt);
-    h.engine.commit(&reporter, &request_id, &commitment, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    h.engine.commit(
+        &reporter,
+        &request_id,
+        &commitment,
+        &DEFAULT_MIN_STAKE_NEW_REPORTER,
+    );
 
     h.advance_to_reveal(request_id);
     let res = h.engine.try_reveal(
@@ -359,7 +375,8 @@ fn test_early_reveal_rejected() {
     let value = 800_000i128;
     let salt = [3u8; 32];
     let c = h.make_commitment(value, &salt);
-    h.engine.commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    h.engine
+        .commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
 
     // Do NOT advance — still before commit_deadline
     let res = h.engine.try_reveal(
@@ -391,7 +408,8 @@ fn test_late_reveal_rejected() {
     let value = 800_000i128;
     let salt = [4u8; 32];
     let c = h.make_commitment(value, &salt);
-    h.engine.commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    h.engine
+        .commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
 
     h.advance_past_reveal(request_id); // Past reveal_deadline
 
@@ -422,10 +440,16 @@ fn test_double_commit_rejected() {
     h.mint_and_fund(&reporter, 20_000_000);
 
     let c = h.make_commitment(800_000, &[5u8; 32]);
-    h.engine.commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    h.engine
+        .commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
 
-    let res = h.engine.try_commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
-    assert_eq!(res.unwrap_err().unwrap(), ContractError::DuplicateCommitment);
+    let res = h
+        .engine
+        .try_commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    assert_eq!(
+        res.unwrap_err().unwrap(),
+        ContractError::DuplicateCommitment
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -448,7 +472,9 @@ fn test_commit_after_deadline_rejected() {
     env.ledger().set_timestamp(env.ledger().timestamp() + 1);
 
     let c = h.make_commitment(800_000, &[6u8; 32]);
-    let res = h.engine.try_commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    let res = h
+        .engine
+        .try_commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
     assert_eq!(res.unwrap_err().unwrap(), ContractError::DeadlinePassed);
 }
 
@@ -477,13 +503,19 @@ fn test_claim_twice_rejected() {
         h.enroll_reporter(&reporters[i]);
         h.mint_and_fund(&reporters[i], 10_000_000);
         let c = h.make_commitment(values[i], &salts[i]);
-        h.engine.commit(&reporters[i], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &c,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
     h.advance_to_reveal(request_id);
     for i in 0..3 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0xFFu8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
     h.engine.resolve(&request_id);
@@ -526,7 +558,8 @@ fn test_outlier_receives_gentle_slash() {
     for i in 0..5 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0xDDu8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
 
@@ -572,14 +605,15 @@ fn test_non_revealer_gets_heavy_slash() {
     for i in 0..3 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0xEEu8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
     h.engine.resolve(&request_id);
 
     let non_rev_payout = h.engine.get_payout(&reporters[3], &request_id).unwrap();
-    let expected = stake
-        - marketpulse_shared::bps_mul(stake, DEFAULT_NON_REVEAL_SLASH_BPS).unwrap();
+    let expected =
+        stake - marketpulse_shared::bps_mul(stake, DEFAULT_NON_REVEAL_SLASH_BPS).unwrap();
     assert_eq!(non_rev_payout.claimable, expected);
 }
 
@@ -622,7 +656,8 @@ fn test_exact_accounting_5_reporters_all_accepted() {
     for i in 0..n {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0x11u8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &values[i], &salt, &ev);
     }
     h.advance_past_reveal(request_id);
     h.engine.resolve(&request_id);
@@ -634,7 +669,8 @@ fn test_exact_accounting_5_reporters_all_accepted() {
 
     let treasury_after = h.token.balance(&h.treasury);
     let audit_after = h.token.balance(&h.audit_fund);
-    let total_out = total_claimed + (treasury_after - treasury_before) + (audit_after - audit_before);
+    let total_out =
+        total_claimed + (treasury_after - treasury_before) + (audit_after - audit_before);
 
     // Invariant: total_in - total_out <= dust (at most n minor units of rounding)
     let diff = total_in - total_out;
@@ -753,7 +789,11 @@ fn test_weighted_median_ngn_tomato_prices() {
         (100_000, 200), // outlier
     ];
     let median = marketpulse_shared::weighted_median(&prices).unwrap();
-    assert!(median >= 410_000 && median <= 430_000, "tomato median={}", median);
+    assert!(
+        median >= 410_000 && median <= 430_000,
+        "tomato median={}",
+        median
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -788,7 +828,8 @@ fn test_resolve_at_max_reports_15_completes() {
     for i in 0..n {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0x22u8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &800_000i128, &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &800_000i128, &salt, &ev);
     }
     h.advance_past_reveal(request_id);
 
@@ -831,10 +872,20 @@ fn test_commit_beyond_max_reports_rejected() {
     }
     for i in 0..3 {
         let c = h.make_commitment(800_000, &[i as u8; 32]);
-        h.engine.commit(&reporters[i], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &c,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
     let c = h.make_commitment(800_000, &[99u8; 32]);
-    let res = h.engine.try_commit(&reporters[3], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    let res = h.engine.try_commit(
+        &reporters[3],
+        &request_id,
+        &c,
+        &DEFAULT_MIN_STAKE_NEW_REPORTER,
+    );
     assert_eq!(res.unwrap_err().unwrap(), ContractError::MaxReportsReached);
 }
 
@@ -857,14 +908,18 @@ fn test_double_reveal_rejected() {
     let value = 800_000i128;
     let salt = [7u8; 32];
     let c = h.make_commitment(value, &salt);
-    h.engine.commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+    h.engine
+        .commit(&reporter, &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
 
     h.advance_to_reveal(request_id);
     let salt_b = BytesN::from_array(env, &salt);
     let ev = BytesN::from_array(env, &[0u8; 32]);
-    h.engine.reveal(&reporter, &request_id, &value, &salt_b, &ev);
+    h.engine
+        .reveal(&reporter, &request_id, &value, &salt_b, &ev);
 
-    let res = h.engine.try_reveal(&reporter, &request_id, &value, &salt_b, &ev);
+    let res = h
+        .engine
+        .try_reveal(&reporter, &request_id, &value, &salt_b, &ev);
     assert_eq!(res.unwrap_err().unwrap(), ContractError::AlreadyRevealed);
 }
 
@@ -885,9 +940,12 @@ fn test_stake_too_low_rejected() {
     h.mint_and_fund(&reporter, 10_000_000);
 
     let c = h.make_commitment(800_000, &[8u8; 32]);
-    let res = h
-        .engine
-        .try_commit(&reporter, &request_id, &c, &(DEFAULT_MIN_STAKE_NEW_REPORTER - 1));
+    let res = h.engine.try_commit(
+        &reporter,
+        &request_id,
+        &c,
+        &(DEFAULT_MIN_STAKE_NEW_REPORTER - 1),
+    );
     assert_eq!(res.unwrap_err().unwrap(), ContractError::StakeTooLow);
 }
 
@@ -933,18 +991,27 @@ fn test_finalise_before_challenge_window_rejected() {
         h.enroll_reporter(&reporters[i]);
         h.mint_and_fund(&reporters[i], 10_000_000);
         let c = h.make_commitment(800_000, &salts[i]);
-        h.engine.commit(&reporters[i], &request_id, &c, &DEFAULT_MIN_STAKE_NEW_REPORTER);
+        h.engine.commit(
+            &reporters[i],
+            &request_id,
+            &c,
+            &DEFAULT_MIN_STAKE_NEW_REPORTER,
+        );
     }
     h.advance_to_reveal(request_id);
     for i in 0..3 {
         let salt = BytesN::from_array(env, &salts[i]);
         let ev = BytesN::from_array(env, &[0x55u8; 32]);
-        h.engine.reveal(&reporters[i], &request_id, &800_000i128, &salt, &ev);
+        h.engine
+            .reveal(&reporters[i], &request_id, &800_000i128, &salt, &ev);
     }
     h.advance_past_reveal(request_id);
     h.engine.resolve(&request_id);
 
     // Challenge window not yet over
     let res = h.engine.try_finalise(&request_id);
-    assert_eq!(res.unwrap_err().unwrap(), ContractError::ChallengeWindowActive);
+    assert_eq!(
+        res.unwrap_err().unwrap(),
+        ContractError::ChallengeWindowActive
+    );
 }

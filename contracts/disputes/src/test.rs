@@ -9,8 +9,8 @@ use soroban_sdk::{token, Address, BytesN, Env, Symbol};
 // Minimal stubs so Disputes contract can call RequestBoard
 // ---------------------------------------------------------------------------
 
-use marketpulse_request_board::{RequestBoardContract, RequestBoardContractClient};
 use marketpulse_registry::{RegistryContract, RegistryContractClient};
+use marketpulse_request_board::{RequestBoardContract, RequestBoardContractClient};
 
 // ---------------------------------------------------------------------------
 // Harness
@@ -202,12 +202,9 @@ fn test_challenge_wrong_status_rejected() {
     h.token_admin.mint(&challenger, &100_000_000);
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
 
-    let res = h.disputes.try_challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    let res = h
+        .disputes
+        .try_challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
     assert_eq!(
         res.unwrap_err().unwrap(),
         ContractError::RequestNotChallengeable
@@ -223,26 +220,18 @@ fn test_double_challenge_rejected() {
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
     h.token_admin.mint(&challenger, &(bond * 3));
 
-    h.disputes.challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    h.disputes
+        .challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
 
-    let res = h.disputes.try_challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason2"),
-    );
+    let res =
+        h.disputes
+            .try_challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason2"));
     // After first challenge, the request status is Disputed (not Challengeable),
     // so the second attempt fails with RequestNotChallengeable before reaching the
     // AlreadyChallenged check. Both errors correctly prevent a double challenge.
     let err = res.unwrap_err().unwrap();
     assert!(
-        err == ContractError::AlreadyChallenged
-            || err == ContractError::RequestNotChallengeable,
+        err == ContractError::AlreadyChallenged || err == ContractError::RequestNotChallengeable,
         "expected double-challenge to be blocked, got: {:?}",
         err
     );
@@ -314,7 +303,8 @@ fn test_rule_majority_rejected_slashes_bond() {
     assert_eq!(dispute.upheld, Some(false));
 
     // Bond should be slashed: 70% to audit fund, 30% to treasury
-    let expected_audit = marketpulse_shared::bps_mul(bond, REJECTED_DISPUTE_BOND_AUDIT_FUND_BPS).unwrap();
+    let expected_audit =
+        marketpulse_shared::bps_mul(bond, REJECTED_DISPUTE_BOND_AUDIT_FUND_BPS).unwrap();
     let expected_treasury = bond - expected_audit;
 
     assert_eq!(
@@ -378,12 +368,8 @@ fn test_double_vote_rejected() {
     let challenger = Address::generate(&h.env);
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
     h.token_admin.mint(&challenger, &(bond * 2));
-    h.disputes.challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    h.disputes
+        .challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
 
     let p1 = Address::generate(&h.env);
     h.register_panel_member(&p1);
@@ -401,12 +387,8 @@ fn test_non_panel_member_cannot_vote() {
     let challenger = Address::generate(&h.env);
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
     h.token_admin.mint(&challenger, &(bond * 2));
-    h.disputes.challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    h.disputes
+        .challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
 
     let non_member = Address::generate(&h.env);
     let res = h.disputes.try_rule(&non_member, &req_id, &true);
@@ -421,12 +403,8 @@ fn test_timeout_resolution_defaults_to_rejected() {
     let challenger = Address::generate(&h.env);
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
     h.token_admin.mint(&challenger, &(bond * 2));
-    h.disputes.challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    h.disputes
+        .challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
 
     let dispute = h.disputes.get_dispute(&req_id).unwrap();
 
@@ -435,9 +413,7 @@ fn test_timeout_resolution_defaults_to_rejected() {
     assert_eq!(res.unwrap_err().unwrap(), ContractError::DeadlineNotMet);
 
     // Advance past ruling deadline
-    h.env
-        .ledger()
-        .set_timestamp(dispute.ruling_deadline + 1);
+    h.env.ledger().set_timestamp(dispute.ruling_deadline + 1);
 
     let treasury_before = h.token.balance(&h.treasury);
     let audit_before = h.token.balance(&h.audit_fund);
@@ -472,17 +448,27 @@ fn test_seed_commit_reveal_xor_accumulates() {
 
     // Build commitments
     let mut preimage1 = soroban_sdk::Bytes::new(&h.env);
-    for b in secret1 { preimage1.push_back(b); }
-    for b in nonce1 { preimage1.push_back(b); }
+    for b in secret1 {
+        preimage1.push_back(b);
+    }
+    for b in nonce1 {
+        preimage1.push_back(b);
+    }
     let commitment1 = h.env.crypto().sha256(&preimage1).into();
 
     let mut preimage2 = soroban_sdk::Bytes::new(&h.env);
-    for b in secret2 { preimage2.push_back(b); }
-    for b in nonce2 { preimage2.push_back(b); }
+    for b in secret2 {
+        preimage2.push_back(b);
+    }
+    for b in nonce2 {
+        preimage2.push_back(b);
+    }
     let commitment2 = h.env.crypto().sha256(&preimage2).into();
 
-    h.disputes.submit_seed_commitment(&c1, &request_id, &commitment1);
-    h.disputes.submit_seed_commitment(&c2, &request_id, &commitment2);
+    h.disputes
+        .submit_seed_commitment(&c1, &request_id, &commitment1);
+    h.disputes
+        .submit_seed_commitment(&c2, &request_id, &commitment2);
 
     // Reveal
     h.disputes.reveal_seed(
@@ -515,11 +501,16 @@ fn test_seed_wrong_nonce_rejected() {
     let wrong_nonce = [0x20u8; 32];
 
     let mut preimage = soroban_sdk::Bytes::new(&h.env);
-    for b in secret { preimage.push_back(b); }
-    for b in real_nonce { preimage.push_back(b); }
+    for b in secret {
+        preimage.push_back(b);
+    }
+    for b in real_nonce {
+        preimage.push_back(b);
+    }
     let commitment = h.env.crypto().sha256(&preimage).into();
 
-    h.disputes.submit_seed_commitment(&c1, &request_id, &commitment);
+    h.disputes
+        .submit_seed_commitment(&c1, &request_id, &commitment);
 
     let res = h.disputes.try_reveal_seed(
         &c1,
@@ -578,12 +569,8 @@ fn test_rule_after_already_ruled_rejected() {
     let challenger = Address::generate(&h.env);
     let bond = DEFAULT_MIN_STAKE_NEW_REPORTER * 5;
     h.token_admin.mint(&challenger, &(bond * 2));
-    h.disputes.challenge(
-        &challenger,
-        &req_id,
-        &bond,
-        &Symbol::new(&h.env, "reason"),
-    );
+    h.disputes
+        .challenge(&challenger, &req_id, &bond, &Symbol::new(&h.env, "reason"));
 
     let p1 = Address::generate(&h.env);
     let p2 = Address::generate(&h.env);

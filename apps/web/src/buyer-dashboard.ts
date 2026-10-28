@@ -185,7 +185,10 @@ export class BuyerPortalManager {
     targetUrl: string;
     dataTypes: string[];
   }): BuyerWebhookSubscription {
-    if (!params.targetUrl.startsWith('https://') && !params.targetUrl.startsWith('http://localhost')) {
+    if (
+      !params.targetUrl.startsWith('https://') &&
+      !params.targetUrl.startsWith('http://localhost')
+    ) {
       throw new Error('InvalidWebhookUrl: Webhook must use HTTPS (or localhost in dev)');
     }
     const id = `wh_${crypto.randomBytes(6).toString('hex')}`;

@@ -8,12 +8,12 @@
 
 West African field reporters frequently operate on intermittent 3G/Edge networks using mid-range Android devices (e.g., Tecno Spark 10, Infinix Smart 8, Samsung Galaxy A14) with 2–4 GB RAM.
 
-| Metric | Budget Limit | Enforcement |
-|---|---|---|
-| **Reporter Initial JS Payload** | `<= 120 KB` (compressed) | Enforced in `apps/web/src/currency.ts` (`PERFORMANCE_BUDGET.maxReporterInitialJsBytes`) |
-| **Client-Compressed Evidence Photo** | `<= 150 KB` per upload | Enforced in `compressAndHashPhoto()` prior to SHA-256 hashing and upload |
-| **Time to Interactive (Slow 3G)** | `<= 3,500 ms` | App shell cached by Service Worker (`apps/web/public/sw.js`) |
-| **Heavy Buyer Dependencies** | Lazy-loaded only on Buyer route | MapLibre GL and Recharts are isolated from the Reporter bundle |
+| Metric                               | Budget Limit                    | Enforcement                                                                             |
+| ------------------------------------ | ------------------------------- | --------------------------------------------------------------------------------------- |
+| **Reporter Initial JS Payload**      | `<= 120 KB` (compressed)        | Enforced in `apps/web/src/currency.ts` (`PERFORMANCE_BUDGET.maxReporterInitialJsBytes`) |
+| **Client-Compressed Evidence Photo** | `<= 150 KB` per upload          | Enforced in `compressAndHashPhoto()` prior to SHA-256 hashing and upload                |
+| **Time to Interactive (Slow 3G)**    | `<= 3,500 ms`                   | App shell cached by Service Worker (`apps/web/public/sw.js`)                            |
+| **Heavy Buyer Dependencies**         | Lazy-loaded only on Buyer route | MapLibre GL and Recharts are isolated from the Reporter bundle                          |
 
 ---
 

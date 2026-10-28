@@ -68,7 +68,9 @@ export class AdminOperationsManager {
     adminAddress: string;
   }): AdminSuspensionAuditEntry {
     if (params.reason.trim().length < 5) {
-      throw new Error('ValidationError: Suspension/reinstatement reason must be at least 5 characters');
+      throw new Error(
+        'ValidationError: Suspension/reinstatement reason must be at least 5 characters',
+      );
     }
 
     const newStatus = params.action === 'suspend' ? 'suspended' : 'active';

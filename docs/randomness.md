@@ -71,12 +71,12 @@ for slot in 0..panel_size:
 
 ## 3. Security properties
 
-| Property | Guarantee |
-|---|---|
-| **Unpredictability before reveal** | No contributor knows the final seed before all reveals |
-| **Bias resistance** | An attacker controlling `k` out of `n` contributors can bias only their `k` contributions; the remaining `n-k` XOR shares cancel the bias probabilistically |
-| **Last-revealer advantage** | The last contributor to reveal can observe the current running XOR and choose to withhold. Mitigation: require all panel members to commit before any reveals; slash any contributor who commits but does not reveal within the window |
-| **Fallback** | If insufficient entropy contributors reveal, the admin multisig can set a manual seed override via `Disputes::set_fallback_seed` (v1 TODO — see ADR) |
+| Property                           | Guarantee                                                                                                                                                                                                                              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Unpredictability before reveal** | No contributor knows the final seed before all reveals                                                                                                                                                                                 |
+| **Bias resistance**                | An attacker controlling `k` out of `n` contributors can bias only their `k` contributions; the remaining `n-k` XOR shares cancel the bias probabilistically                                                                            |
+| **Last-revealer advantage**        | The last contributor to reveal can observe the current running XOR and choose to withhold. Mitigation: require all panel members to commit before any reveals; slash any contributor who commits but does not reveal within the window |
+| **Fallback**                       | If insufficient entropy contributors reveal, the admin multisig can set a manual seed override via `Disputes::set_fallback_seed` (v1 TODO — see ADR)                                                                                   |
 
 ---
 
@@ -88,6 +88,7 @@ the initial request creation transaction participants.
 
 In v1 the assignment is **off-chain** (the worker selects eligible reporters from
 the pool and submits their assignments), with the on-chain check being:
+
 - Reporter must be Active in Registry
 - Reporter's geohash cluster overlaps the request geohash (attested in Registry)
 - Reporter has not already committed to this request
