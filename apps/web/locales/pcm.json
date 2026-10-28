@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "locale": "pcm",
+    "name": "Nigerian Pidgin",
+    "status": "needs native review"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Original market price data wey people for ground dey gather for West Africa",
+    "offline_banner": "Network no dey now. We don save your report well-well, e go send sharp-sharp once network return.",
+    "online_status": "Network Dey (You no need XLM gas fee - Relayer dey pay am)"
+  },
+  "auth": {
+    "phone_label": "Your Phone Number (E.164)",
+    "phone_placeholder": "+2348012345678",
+    "send_otp": "Send 6-Digit Code",
+    "otp_label": "Enter 6-Digit SMS Code",
+    "verify_otp": "Confirm & Enter",
+    "create_passkey": "Open Passkey Wallet with Fingerprint/PIN",
+    "passkey_ready": "Your Smart Wallet Don Set (No seed phrase wahala)"
+  },
+  "onboarding": {
+    "welcome": "Welcome to MarketPulse Reporter Network",
+    "practice_title": "Practice Round (No Kobo Dey Risk Here)",
+    "practice_desc": "Do 3 small practice price check make you fit unlock Tier 1 work wey dey pay money.",
+    "practice_complete": "Practice don finish! You don enter Tier 1 Reporter level."
+  },
+  "reporter": {
+    "tasks_title": "Market Work Wey Dey Ground",
+    "stake_at_risk_title": "Check Your Stake Wey Dey Risk",
+    "stake_at_risk_warning": "You wan lock {stake_local} ({stake_usdc} USDC) for this report. If you no reveal your price before time up, dem go cut 80% for your stake. If your price far pass market price well-well, dem fit cut 25%.",
+    "commit_button": "Lock Stake & Send Secret Commit",
+    "reveal_button": "Open Price & Upload Market Photo",
+    "price_label": "Market Price Wey You See (NGN)",
+    "photo_label": "Snap Picture of the Bag/Paint & Price",
+    "earnings_title": "Money Wey You Don Make & Slash Record",
+    "appeal_slash": "Complain / Appeal This Slash"
+  },
+  "slash_reasons": {
+    "OUTLIER_DEVIATION": "The price wey you talk far pass wetin other people see for market (25% gentle cut).",
+    "NON_REVEAL": "You lock commit finish, you no come open am before time close (80% heavy cut).",
+    "FRAUD_AUDIT_FAILED": "Market checker go check ground see say the photo na fake or old picture (100% full cut)."
+  }
+}

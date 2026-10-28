@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "locale": "fr",
+    "name": "Français",
+    "status": "fallback to en (needs native review)"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Oracle de données de marché local pour l'Afrique de l'Ouest"
+  }
+}

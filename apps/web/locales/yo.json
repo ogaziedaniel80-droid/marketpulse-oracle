@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "locale": "yo",
+    "name": "Yorùbá",
+    "status": "fallback to en (needs native review)"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Àkójọpọ̀ ìròyìn iye ọjà ní ìwọ̀-oòrùn Áfíríkà"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "MarketPulse Oracle PWA",
+  "short_name": "MarketPulse",
+  "description": "Crowd-sourced, stake-backed local market data oracle for West Africa on Stellar Soroban",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#059669",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "locale": "ig",
+    "name": "Igbo",
+    "status": "fallback to en (needs native review)"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Ọnụahịa ahịa eziokwu maka Ọdịda Anyanwụ Afrịka"
+  }
+}

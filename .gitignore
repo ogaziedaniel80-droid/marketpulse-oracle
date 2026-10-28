@@ -38,3 +38,6 @@ Thumbs.db
 .stellar/
 **/test_snapshots/
 test_snapshots/
+**/test-results/
+**/playwright-report/
+**/.pytest_cache/

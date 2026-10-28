@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "locale": "en",
+    "name": "English",
+    "status": "complete"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Crowd-sourced, stake-backed local market data for West Africa",
+    "offline_banner": "You are offline. Reports are queued safely and will sync when data returns.",
+    "online_status": "Connected (Zero XLM gas fees - sponsored by Relayer)"
+  },
+  "auth": {
+    "phone_label": "Phone Number (E.164)",
+    "phone_placeholder": "+2348012345678",
+    "send_otp": "Send Verification Code",
+    "otp_label": "6-Digit SMS Code",
+    "verify_otp": "Verify & Sign In",
+    "create_passkey": "Create Biometric Passkey Wallet",
+    "passkey_ready": "Smart Wallet Active (No seed phrase needed)"
+  },
+  "onboarding": {
+    "welcome": "Welcome to MarketPulse Reporter Network",
+    "practice_title": "Practice Round (No Stake at Risk)",
+    "practice_desc": "Complete 3 practice price checks to unlock Tier 1 paid reporting.",
+    "practice_complete": "Practice complete! You are now enrolled as a Tier 1 Reporter."
+  },
+  "reporter": {
+    "tasks_title": "Available Market Requests",
+    "stake_at_risk_title": "Confirm Stake at Risk",
+    "stake_at_risk_warning": "You are locking {stake_local} ({stake_usdc} USDC) for this report. If you do not reveal before the deadline, up to 80% of your stake will be slashed. If your price is an extreme outlier, 25% of your stake may be deducted.",
+    "commit_button": "Lock Stake & Submit Encrypted Commit",
+    "reveal_button": "Reveal Price & Upload Photo Evidence",
+    "price_label": "Observed Market Price (NGN)",
+    "photo_label": "Take Photo of Commodity & Price Display",
+    "hash_computed": "Client SHA-256 Evidence Hash Verified",
+    "queue_queued": "Saved to Offline Queue (Waiting for network)",
+    "queue_synced": "Confirmed On-Chain via Sponsored Relayer",
+    "queue_expired": "Deadline Passed - Cancelled Safely (Stake Not Locked)",
+    "earnings_title": "Earnings & Stake History",
+    "appeal_slash": "Appeal This Slash to Dispute Panel"
+  },
+  "slash_reasons": {
+    "OUTLIER_DEVIATION": "Your reported price differed from the market median by more than the allowed tolerance band (25% gentle stake deduction).",
+    "NON_REVEAL": "You submitted a commitment but did not reveal your price before the reveal deadline closed (80% stake deduction).",
+    "FRAUD_AUDIT_FAILED": "A ground-truth field audit found fabricated or recycled photo evidence (100% stake deduction)."
+  },
+  "buyer": {
+    "dashboard_title": "Buyer Data Portal & Oracle Feed",
+    "create_request_title": "Create New Data Request",
+    "data_type_label": "Commodity Data Type",
+    "market_label": "Target Market Geohash",
+    "bounty_label": "Total Escrowed Bounty (USDC)",
+    "min_stake_label": "Minimum Reporter Stake (USDC)",
+    "submit_request": "Escrow USDC & Publish Request",
+    "observations_title": "Finalised Market Observations",
+    "map_title": "West Africa Market Coverage (MapLibre)",
+    "chart_title": "Historical Median Price Trend (Recharts)",
+    "api_keys_title": "API Key Management",
+    "webhooks_title": "Webhook Subscriptions (HMAC-SHA256)"
+  },
+  "admin": {
+    "panel_title": "Admin & Arbiter Operations",
+    "flags_title": "Advisory Flags Review (Evidence & Collusion)",
+    "suspend_title": "Reporter Status & Suspension",
+    "audit_title": "Schedule Ground-Truth Field Audit"
+  }
+}

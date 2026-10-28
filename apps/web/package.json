@@ -8,14 +8,17 @@
     "build": "tsc -b",
     "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('Web tests passing')\""
+    "test": "vitest run test/",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@marketpulse/shared": "workspace:*",
     "@marketpulse/ui": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "^20.17.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "5.0.5"
   }
 }

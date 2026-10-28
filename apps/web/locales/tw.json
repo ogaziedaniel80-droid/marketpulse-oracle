@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "locale": "tw",
+    "name": "Twi",
+    "status": "fallback to en (needs native review)"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Afrika Atɔeɛ fam dwa so boɔ nokware"
+  }
+}

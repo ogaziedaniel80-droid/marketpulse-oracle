@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "locale": "ha",
+    "name": "Hausa",
+    "status": "needs native review"
+  },
+  "app": {
+    "title": "MarketPulse Oracle",
+    "tagline": "Bayanan farashin kasuwa na gaskiya don Yammacin Afirka",
+    "offline_banner": "Ba ku da intanet. An adana rahotonku lafiya kuma za a tura shi da zarar hanyar sadarwa ta dawo.",
+    "online_status": "An haɗa (Babu kuɗin XLM - Relayer yana biya)"
+  },
+  "auth": {
+    "phone_label": "Lambar Waya (E.164)",
+    "phone_placeholder": "+2348012345678",
+    "send_otp": "Aika Lambar Tabbatarwa",
+    "otp_label": "Lambar SMS mai lamba 6",
+    "verify_otp": "Tabbatar & Shiga",
+    "create_passkey": "Ƙirƙiri Jakar Passkey na Biometric",
+    "passkey_ready": "Jakar Smart Wallet Tana Aiki"
+  },
+  "onboarding": {
+    "welcome": "Barka da zuwa MarketPulse",
+    "practice_title": "Zagayen Gwaji (Babu Kuɗin Ajiya a cikin Haɗari)",
+    "practice_desc": "Kammala gwaje-gwajen farashi 3 don buɗe rahoton kuɗi.",
+    "practice_complete": "An kammala gwaji! Yanzu kun zama Mai Rahoto na Tier 1."
+  },
+  "reporter": {
+    "tasks_title": "Ayyukan Kasuwa da Ake Da Su",
+    "stake_at_risk_title": "Tabbatar da Kuɗin Ajiya (Stake) a cikin Haɗari",
+    "stake_at_risk_warning": "Kuna saka {stake_local} ({stake_usdc} USDC) don wannan rahoton. Idan ba ku bayyana farashin ba kafin lokacin ya ƙare, za a iya rage 80% na kuɗin ajiyarku. Idan farashin ya yi nisa sosai da na kasuwa, za a rage 25%.",
+    "commit_button": "Ajiye Stake & Aika Rahoto",
+    "reveal_button": "Bayyana Farashi & Dora Hoton Shaida",
+    "price_label": "Farashin Kasuwa da Aka Gani (NGN)",
+    "photo_label": "Ɗauki Hoton Kaya da Farashi",
+    "earnings_title": "Tarihin Kuɗin Shiga da Ragewa",
+    "appeal_slash": "Ɗaukaka Ƙara kan Wannan Ragewa"
+  },
+  "slash_reasons": {
+    "OUTLIER_DEVIATION": "Farashin da kuka kawo ya bambanta sosai da matsakaicin farashin kasuwa (an rage 25% na stake).",
+    "NON_REVEAL": "Kun aika commit amma ba ku bayyana farashin ba kafin wa'adin ya cika (an rage 80% na stake).",
+    "FRAUD_AUDIT_FAILED": "Binciken gaskiya a kasuwa ya gano hoton shaida na karya (an rage 100% na stake)."
+  }
+}
