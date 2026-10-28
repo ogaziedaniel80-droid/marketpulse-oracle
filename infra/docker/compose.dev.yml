@@ -50,6 +50,77 @@ services:
       timeout: 5s
       retries: 3
 
+  api:
+    image: node:20-alpine
+    container_name: marketpulse-api
+    profiles: ['full']
+    working_dir: /workspace
+    volumes:
+      - ../../:/workspace
+    command: node apps/api/dist/index.js
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgresql://marketpulse:marketpulse@postgres:5432/marketpulse
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      EVIDENCE_SERVICE_URL: http://evidence-check:5000
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  worker:
+    image: node:20-alpine
+    container_name: marketpulse-worker
+    profiles: ['full']
+    working_dir: /workspace
+    volumes:
+      - ../../:/workspace
+    command: node apps/worker/dist/index.js
+    environment:
+      METRICS_PORT: 9090
+      DATABASE_URL: postgresql://marketpulse:marketpulse@postgres:5432/marketpulse
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '9090:9090'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    image: node:20-alpine
+    container_name: marketpulse-web
+    profiles: ['full']
+    working_dir: /workspace
+    volumes:
+      - ../../:/workspace
+    command: node -e "import('./apps/web/dist/server.js').then(m => m.createWebServer().listen(3000, '0.0.0.0'))"
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+
+  evidence-check:
+    image: python:3.12-slim
+    container_name: marketpulse-evidence-check
+    profiles: ['full']
+    working_dir: /workspace/services/evidence-check
+    volumes:
+      - ../../:/workspace
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn src.main:app --host 0.0.0.0 --port 5000"
+    ports:
+      - '5000:5000'
+
 volumes:
   postgres_data:
   redis_data:
