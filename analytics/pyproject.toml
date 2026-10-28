@@ -1,0 +1,19 @@
+[project]
+name = "marketpulse-analytics"
+version = "0.1.0"
+description = "Graph and correlation analytics for Sybil and collusion detection"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2.0",
+    "networkx>=3.2",
+    "pydantic>=2.6.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
