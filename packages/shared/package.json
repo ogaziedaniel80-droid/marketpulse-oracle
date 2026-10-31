@@ -14,7 +14,7 @@
     "build": "tsc -b",
     "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "@types/pg": "^8.23.1",

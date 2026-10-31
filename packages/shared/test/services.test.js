@@ -90,7 +90,7 @@ describe('External Service Interfaces & Local Mocks', () => {
       assert.ok(retrieved);
       assert.equal(retrieved.content.toString(), content.toString());
 
-      const sanitized = await storage.get(result.exifStrippedKey!);
+      const sanitized = await storage.get(result.exifStrippedKey);
       assert.ok(sanitized);
       assert.ok(sanitized.content.toString().includes('SANITIZED_EXIF'));
     });
