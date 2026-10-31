@@ -8,6 +8,7 @@ node_modules
 .turbo
 dist
 build
+tsconfig.tsbuildinfo
 .next
 out
 

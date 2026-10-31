@@ -134,14 +134,14 @@ describe('Database Schema & Migrations', () => {
       name: 'st_makepoint',
       args: [db.public.getType('float'), db.public.getType('float')],
       returns: db.public.getType('text'),
-      implementation: (x: number, y: number) => `POINT(${x} ${y})`,
+      implementation: (x, y) => `POINT(${x} ${y})`,
     });
 
     db.public.registerFunction({
       name: 'st_setsrid',
       args: [db.public.getType('text'), db.public.getType('integer')],
       returns: db.public.getType('text'),
-      implementation: (pt: string) => pt,
+      implementation: (pt) => pt,
     });
 
     const pgAdapter = db.adapters.createPg();
@@ -149,7 +149,7 @@ describe('Database Schema & Migrations', () => {
 
     // Intercept CREATE EXTENSION and GEOGRAPHY type for pg-mem compatibility
     const origQuery = client.query.bind(client);
-    client.query = async (queryTextOrConfig: any, values?: any) => {
+    client.query = async (queryTextOrConfig, values) => {
       let sql = typeof queryTextOrConfig === 'string' ? queryTextOrConfig : queryTextOrConfig.text;
       // Strip CREATE EXTENSION for pg-mem
       sql = sql.replace(/CREATE EXTENSION IF NOT EXISTS [^;]+;/gi, '-- skipped extension');
