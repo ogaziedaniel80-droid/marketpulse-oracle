@@ -75,6 +75,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@marketpulse/bindings':
+        specifier: workspace:*
+        version: link:../../packages/bindings
       '@marketpulse/shared':
         specifier: workspace:*
         version: link:../../packages/shared
