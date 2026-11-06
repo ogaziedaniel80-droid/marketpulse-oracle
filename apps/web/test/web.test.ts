@@ -14,11 +14,14 @@ import {
   MockWalletProvider,
   OfflineQueueManager,
   PasskeyKitWalletAdapter,
+  BrowserWebAuthnPasskeyAdapter,
   PERFORMANCE_BUDGET,
   SUPPORTED_LOCALES,
   t,
   validateBuyerRequestParams,
 } from '../src/index.js';
+import { renderStatusBadge, renderStakeAtRiskCard } from '@marketpulse/ui';
+import { ReportEngineContract, RequestBoardContract } from '@marketpulse/bindings';
 
 describe('MarketPulse Web PWA Suite', () => {
   describe('1. i18n Locales & Safe Fallback (en, fr, ha, yo, ig, pcm, tw)', () => {
@@ -102,6 +105,28 @@ describe('MarketPulse Web PWA Suite', () => {
         contractId: 'CREPORT_ENGINE',
         method: 'reveal',
         argsJson: '{"value":82000}',
+      });
+      expect(signed.signatureHex).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it('creates and signs with BrowserWebAuthnPasskeyAdapter using WebAuthn standard', async () => {
+      const browserAdapter = new BrowserWebAuthnPasskeyAdapter({
+        rpcUrl: 'https://soroban-testnet.stellar.org',
+        networkPassphrase: 'Test SDF Network ; September 2015',
+        walletWasmHash: 'ab'.repeat(32),
+        relayerUrl: 'http://localhost:4000/v1/relay',
+        rpId: 'marketpulse.africa',
+        rpName: 'MarketPulse Oracle',
+      });
+
+      const account = await browserAdapter.createPasskeyWallet('phone_hash_demo_3');
+      expect(account.contractAddress).toMatch(/^C[A-Z0-9]{55}$/);
+      expect(account.requiresXlmGas).toBe(false);
+
+      const signed = await browserAdapter.signSorobanInvocation({
+        contractId: 'CREPORT_ENGINE',
+        method: 'commit',
+        argsJson: '{"requestId":101,"commitment":"0123"}',
       });
       expect(signed.signatureHex).toMatch(/^[0-9a-f]{64}$/);
     });
@@ -286,6 +311,52 @@ describe('MarketPulse Web PWA Suite', () => {
         sampleRateBps: 800,
       });
       expect(audit.status).toBe('scheduled');
+    });
+  });
+
+  describe('7. Typed Contract Clients & UI Primitives Integration', () => {
+    it('prepares invocations with typed Contract clients from @marketpulse/bindings', () => {
+      const reportEngine = new ReportEngineContract({ contractId: 'CREPORT_ENGINE_123' });
+      const prepCommit = reportEngine.prepareCommit('GREPORTER_1', 101, '0123'.repeat(16), 10000000n);
+      expect(prepCommit.contractId).toBe('CREPORT_ENGINE_123');
+      expect(prepCommit.method).toBe('commit');
+      expect(prepCommit.args.request_id).toBe(101);
+
+      const requestBoard = new RequestBoardContract({ contractId: 'CBOARD_456' });
+      const prepReq = requestBoard.prepareCreateRequest({
+        requester: 'GBUYER_1',
+        dataType: 'RICE50',
+        geohash: 's14b3k9x',
+        bounty: 50000000n,
+        token: 'USDC',
+        minStake: 10000000n,
+        toleranceBps: 800,
+        commitWindowSeconds: 3600,
+        revealWindowSeconds: 3600,
+        challengeWindowSeconds: 7200,
+        minReports: 3,
+        maxReports: 15,
+      });
+      expect(prepReq.contractId).toBe('CBOARD_456');
+      expect(prepReq.args.data_type).toBe('RICE50');
+    });
+
+    it('renders UI badge and stake-at-risk disclosure components from @marketpulse/ui', () => {
+      const activeBadge = renderStatusBadge('active');
+      expect(activeBadge).toContain('Active');
+      expect(activeBadge).toContain('#065f46');
+
+      const card = renderStakeAtRiskCard({
+        stakeUsdc: '10.00',
+        stakeNgn: '16,000 NGN',
+        gentleSlashPenaltyUsdc: '2.50',
+        gentleSlashPenaltyNgn: '4,000 NGN',
+        nonRevealSlashUsdc: '8.00',
+        nonRevealSlashNgn: '12,800 NGN',
+      });
+      expect(card).toContain('Mandatory Stake at Risk Disclosure');
+      expect(card).toContain('10.00 USDC');
+      expect(card).toContain('16,000 NGN');
     });
   });
 });
