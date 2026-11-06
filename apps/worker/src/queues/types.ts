@@ -6,7 +6,8 @@ export type JobName =
   | 'request_assignment'
   | 'audit_scheduling'
   | 'notification_dispatch'
-  | 'webhook_delivery';
+  | 'webhook_delivery'
+  | 'collusion_detection_sweep';
 
 export interface ResolutionTriggerPayload {
   requestId: string;
@@ -55,6 +56,16 @@ export interface WebhookDeliveryPayload {
   data: Record<string, unknown>;
   attempt?: number;
   maxRetries?: number;
+}
+
+export interface CollusionDetectionSweepPayload {
+  requestId: string;
+  submissions: Array<{
+    reporterAddress: string;
+    value: string;
+    timestampSec: number;
+    evidenceHash?: string;
+  }>;
 }
 
 export interface JobResult {

@@ -377,6 +377,7 @@ export * from './relayer.js';
 export * from './s3.js';
 export * from './pinata.js';
 export * from './paystack.js';
+export * from './evidence-client.js';
 
 import { AfricaTalkingSmsProvider } from './africastalking.js';
 import { StellarRpcRelayer } from './relayer.js';

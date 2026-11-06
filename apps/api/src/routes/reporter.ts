@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { ApiState } from '../state.js';
 import { createAuthHooks } from '../plugins/auth.js';
+import { EvidenceCheckClient } from '@marketpulse/shared';
 import { EvidenceHashMismatchError } from '@marketpulse/shared';
 
 export function registerReporterRoutes(app: FastifyInstance, state: ApiState): void {
@@ -213,7 +214,32 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
           stripExif: true,
         });
 
-        // Store evidence record
+        // 1. Run automated evidence verification checks (pHash, tampering, duplicate)
+        const checker = new EvidenceCheckClient();
+        const checkResult = await checker.checkEvidence({
+          imageBase64: body.content_base64,
+          reporterAddress: req.reporter?.wallet_address || 'GDEMO_REPORTER',
+          requestId: body.request_id,
+          marketId: 'ng-abuja-wuse',
+        });
+
+        // 2. Record any advisory flags
+        if (checkResult.flags && checkResult.flags.length > 0) {
+          for (const f of checkResult.flags) {
+            state.flags.push({
+              id: crypto.randomUUID(),
+              flag_type: (f.flagType as any) || 'evidence_duplicate',
+              request_id: body.request_id,
+              reporter_address: req.reporter?.wallet_address || 'GDEMO_REPORTER',
+              severity: (f.severity as any) || 'medium',
+              details: { description: f.description, pHash: checkResult.pHash },
+              reviewed: false,
+              created_at: new Date(),
+            });
+          }
+        }
+
+        // 3. Store evidence record
         const evId = crypto.randomUUID();
         const evRecord = {
           id: evId,
@@ -226,6 +252,9 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
             sha256Verified: true,
             exifStripped: true,
             pHashComputed: true,
+            pHash: checkResult.pHash,
+            tamperingScore: checkResult.tamperingScore,
+            duplicateDetected: checkResult.duplicateDetected,
           },
           created_at: new Date(),
         };

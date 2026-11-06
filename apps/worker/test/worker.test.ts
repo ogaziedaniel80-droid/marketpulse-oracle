@@ -271,6 +271,21 @@ describe('Worker Service Test Suite', () => {
       const expectedSig = `sha256=${crypto.createHmac('sha256', secret).update(rawBody).digest('hex')}`;
       expect(delivered.signature).toBe(expectedSig);
     });
+
+    it('handles collusion_detection_sweep: detects timing bursts and duplicate evidence', async () => {
+      const processor = new WorkerQueueProcessor(services);
+      const res = await processor.handleJob('collusion_detection_sweep', {
+        requestId: 'req_sweep_test',
+        submissions: [
+          { reporterAddress: 'GREPORTER_1', value: '8200000', timestampSec: 1000, evidenceHash: 'ev_dup_1' },
+          { reporterAddress: 'GREPORTER_2', value: '8200000', timestampSec: 1002, evidenceHash: 'ev_dup_1' },
+          { reporterAddress: 'GREPORTER_3', value: '8250000', timestampSec: 1050, evidenceHash: 'ev_unique_3' },
+        ],
+      });
+
+      expect(res.success).toBe(true);
+      expect((res.data as any)?.flagCount).toBeGreaterThanOrEqual(2); // 1 duplicate hash + 1 timing burst (diff = 2s)
+    });
   });
 
   describe('Prometheus Metrics Exporter (README §23)', () => {

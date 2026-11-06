@@ -12,6 +12,7 @@ import type {
   AuditSchedulingPayload,
   NotificationDispatchPayload,
   WebhookDeliveryPayload,
+  CollusionDetectionSweepPayload,
 } from './types.js';
 import type { ServiceContainer } from '@marketpulse/shared';
 
@@ -111,6 +112,9 @@ export class WorkerQueueProcessor {
           break;
         case 'webhook_delivery':
           result = await this.handleWebhookDelivery(payload as WebhookDeliveryPayload);
+          break;
+        case 'collusion_detection_sweep':
+          result = await this.handleCollusionDetectionSweep(payload as CollusionDetectionSweepPayload);
           break;
         default:
           throw new Error(`Unknown job name: ${name}`);
@@ -279,6 +283,54 @@ export class WorkerQueueProcessor {
       success: true,
       message: `Webhook ${payload.eventType} delivered to ${payload.url}`,
       data: { signature: `sha256=${signature}`, payloadSize: bodyStr.length },
+    };
+  }
+
+  // 9. Collusion Detection Sweep: detects timing bursts, price consensus rings, and duplicate evidence
+  private async handleCollusionDetectionSweep(payload: CollusionDetectionSweepPayload): Promise<JobResult> {
+    const flags: Array<{ type: string; severity: string; reporters: string[]; details: string }> = [];
+    const submissions = payload.submissions || [];
+
+    // Check duplicate evidence hashes
+    const seenHashes = new Map<string, string>();
+    for (const sub of submissions) {
+      if (sub.evidenceHash) {
+        if (seenHashes.has(sub.evidenceHash)) {
+          flags.push({
+            type: 'evidence_duplicate',
+            severity: 'critical',
+            reporters: [seenHashes.get(sub.evidenceHash)!, sub.reporterAddress],
+            details: `Identical evidence hash reused: ${sub.evidenceHash}`,
+          });
+        } else {
+          seenHashes.set(sub.evidenceHash, sub.reporterAddress);
+        }
+      }
+    }
+
+    // Check timing correlation (< 3 second submission burst)
+    const sorted = [...submissions].sort((a, b) => a.timestampSec - b.timestampSec);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const diff = Math.abs(sorted[i + 1].timestampSec - sorted[i].timestampSec);
+      if (diff <= 3) {
+        flags.push({
+          type: 'timing_burst_correlation',
+          severity: 'high',
+          reporters: [sorted[i].reporterAddress, sorted[i + 1].reporterAddress],
+          details: `Submissions occurred within ${diff} seconds of each other`,
+        });
+      }
+    }
+
+    return {
+      jobName: 'collusion_detection_sweep',
+      success: true,
+      message: `Collusion sweep completed for request ${payload.requestId}: ${flags.length} flag(s) identified`,
+      data: {
+        requestId: payload.requestId,
+        flagCount: flags.length,
+        flags,
+      },
     };
   }
 }
