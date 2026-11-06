@@ -14,6 +14,8 @@ import {
   type AdminActionRow,
   createServiceContainer,
   type ServiceContainer,
+  type DatabaseRepository,
+  PostgresRepository,
 } from '@marketpulse/shared';
 
 export interface OtpSession {
@@ -35,6 +37,7 @@ export interface ReporterSession {
 
 export class ApiState {
   public services: ServiceContainer;
+  public db?: DatabaseRepository;
   public markets = new Map<string, MarketRow>();
   public reporters = new Map<string, ReporterRow>(); // key: id or walletAddress
   public requests = new Map<string, RequestRow>();
@@ -54,9 +57,116 @@ export class ApiState {
 
   public adminKey = process.env.ADMIN_KEY || 'marketpulse_admin_secret_key_123';
 
-  constructor(services?: Partial<ServiceContainer>) {
-    this.services = createServiceContainer(services);
+  constructor(options: { services?: Partial<ServiceContainer>; db?: DatabaseRepository } = {}) {
+    this.services = createServiceContainer(options.services);
+    if (options.db) {
+      this.db = options.db;
+    } else if (process.env.DATABASE_URL) {
+      try {
+        this.db = new PostgresRepository(process.env.DATABASE_URL);
+      } catch {
+        // Fallback to in-memory
+      }
+    }
     this.seedDefaults();
+  }
+
+  public async saveRequest(req: RequestRow): Promise<void> {
+    this.requests.set(req.id, req);
+    if (this.db) {
+      try {
+        await this.db.upsertRequest(req);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveReporter(rep: ReporterRow): Promise<void> {
+    this.reporters.set(rep.id, rep);
+    this.reporters.set(rep.wallet_address, rep);
+    if (this.db) {
+      try {
+        await this.db.upsertReporter(rep);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveReport(rep: ReportRow): Promise<void> {
+    const list = this.reports.get(rep.request_id) || [];
+    const idx = list.findIndex((r) => r.reporter_address === rep.reporter_address);
+    if (idx >= 0) {
+      list[idx] = rep;
+    } else {
+      list.push(rep);
+    }
+    this.reports.set(rep.request_id, list);
+    if (this.db) {
+      try {
+        await this.db.upsertReport(rep);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveObservation(obs: ObservationRow): Promise<void> {
+    this.observations.set(obs.request_id, obs);
+    if (this.db) {
+      try {
+        await this.db.upsertObservation(obs);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveEvidence(ev: EvidenceRow): Promise<void> {
+    this.evidence.set(ev.evidence_hash, ev);
+    if (this.db) {
+      try {
+        await this.db.upsertEvidence(ev);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveWebhook(w: WebhookRow): Promise<void> {
+    this.webhooks.push(w);
+    if (this.db) {
+      try {
+        await this.db.insertWebhook(w);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async saveAudit(a: AuditRow): Promise<void> {
+    this.audits.push(a);
+    if (this.db) {
+      try {
+        await this.db.insertAudit(a);
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  public async savePayout(p: PayoutRow): Promise<void> {
+    const list = this.payouts.get(p.reporter_address) || [];
+    list.push(p);
+    this.payouts.set(p.reporter_address, list);
+    if (this.db) {
+      try {
+        await this.db.upsertPayout(p);
+      } catch {
+        // Fallback
+      }
+    }
   }
 
   public seedDefaults(): void {
@@ -189,6 +299,9 @@ export class ApiState {
       created_at: new Date(),
     };
     this.adminActions.push(entry);
+    if (this.db) {
+      this.db.insertAdminAction(entry).catch(() => {});
+    }
     return entry;
   }
 }

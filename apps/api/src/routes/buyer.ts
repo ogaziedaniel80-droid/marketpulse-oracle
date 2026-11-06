@@ -214,7 +214,7 @@ export function registerBuyerRoutes(app: FastifyInstance, state: ApiState): void
         updated_at: new Date(),
       };
 
-      state.requests.set(requestId, requestRow);
+      await state.saveRequest(requestRow);
 
       return reply.status(201).send({
         request_id: requestId,
@@ -306,6 +306,9 @@ export function registerBuyerRoutes(app: FastifyInstance, state: ApiState): void
       };
 
       state.webhooks.push(row);
+      if (state.db) {
+        state.db.insertWebhook(row).catch(() => {});
+      }
 
       return reply.status(201).send({
         webhook_id: webhookId,

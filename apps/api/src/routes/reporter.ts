@@ -214,8 +214,9 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
         });
 
         // Store evidence record
-        state.evidence.set(uploadRes.sha256, {
-          id: crypto.randomUUID(),
+        const evId = crypto.randomUUID();
+        const evRecord = {
+          id: evId,
           evidence_hash: uploadRes.sha256,
           storage_key: uploadRes.key,
           mime_type: body.mime_type,
@@ -227,7 +228,21 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
             pHashComputed: true,
           },
           created_at: new Date(),
-        });
+        };
+        state.evidence.set(uploadRes.sha256, evRecord);
+
+        if (state.db) {
+          state.db.upsertEvidence({
+            id: evId,
+            evidence_hash: uploadRes.sha256,
+            storage_key: uploadRes.key,
+            mime_type: body.mime_type,
+            file_size_bytes: uploadRes.size,
+            exif_stripped_key: uploadRes.exifStrippedKey,
+            check_results: evRecord.check_results,
+            created_at: new Date(),
+          }).catch(() => {});
+        }
 
         return reply.status(201).send({
           evidence_hash: uploadRes.sha256,

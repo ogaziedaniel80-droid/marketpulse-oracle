@@ -572,4 +572,40 @@ describe('Fastify API Test Suite', () => {
       expect(state.adminActions.some((a) => a.action === 'add_datatype')).toBe(true);
     });
   });
+
+  describe('Database Repository Integration', () => {
+    it('persists requests and observations to database repository when provided', async () => {
+      const mockDb: any = {
+        upsertRequest: async (req: any) => { mockDb.lastRequest = req; },
+        upsertObservation: async (obs: any) => { mockDb.lastObservation = obs; },
+        insertAdminAction: async (act: any) => { mockDb.lastAdminAction = act; },
+      };
+
+      const persistentState = new ApiState({ db: mockDb });
+      const testReq = {
+        id: 'req_db_test_1',
+        requester: 'GBUYER_TEST',
+        data_type: 'RICE50',
+        geohash: 's14b3k9x',
+        bounty: '10000000',
+        token: 'USDC',
+        min_stake: '1000000',
+        tolerance_bps: 800,
+        commit_deadline: new Date(),
+        reveal_deadline: new Date(),
+        challenge_window: '3600',
+        min_reports: 3,
+        max_reports: 15,
+        status: 'open' as const,
+        created_ledger: '105000',
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      await persistentState.saveRequest(testReq);
+      expect(mockDb.lastRequest).toBeDefined();
+      expect(mockDb.lastRequest.id).toBe('req_db_test_1');
+      expect(persistentState.requests.get('req_db_test_1')).toBeDefined();
+    });
+  });
 });

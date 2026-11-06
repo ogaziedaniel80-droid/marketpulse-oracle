@@ -100,7 +100,7 @@ export function registerAdminRoutes(app: FastifyInstance, state: ApiState): void
         created_at: new Date(),
       };
 
-      state.audits.push(auditRow);
+      await state.saveAudit(auditRow);
 
       const auditLog = state.logAdminAction(req.adminAddress!, 'schedule_audit', auditId, {
         request_id: body.request_id,
