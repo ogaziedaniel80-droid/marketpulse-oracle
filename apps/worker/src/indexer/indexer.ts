@@ -1,6 +1,16 @@
-import type { StellarRpcEvent, GetEventsFilter } from './types.js';
+import type { StellarRpcEvent, GetEventsFilter, GetEventsResponse } from './types.js';
 import type { MockStellarRpcClient } from './mock-rpc.js';
-import type { RequestRow, ReportRow, ObservationRow, PayoutRow } from '@marketpulse/shared';
+import type { LiveStellarRpcClient } from './live-rpc.js';
+import type { RequestRow, ReportRow, ObservationRow, PayoutRow, DatabaseRepository } from '@marketpulse/shared';
+
+export type AnyStellarRpcClient = {
+  getEvents(
+    startLedger: number,
+    filters?: GetEventsFilter[],
+    cursor?: string,
+    limit?: number,
+  ): Promise<GetEventsResponse>;
+};
 
 export interface IndexerStateStore {
   getCursor(): Promise<{ cursor: string; ledger: number } | null>;
@@ -13,6 +23,68 @@ export interface IndexerStateStore {
   upsertPayout(
     payout: Partial<PayoutRow> & { request_id: string; reporter_address: string },
   ): Promise<void>;
+}
+
+export class PgIndexerStateStore implements IndexerStateStore {
+  private repo: DatabaseRepository;
+  private cursor: string = '';
+  private ledger: number = 0;
+
+  constructor(repo: DatabaseRepository) {
+    this.repo = repo;
+  }
+
+  async getCursor() {
+    try {
+      const rows = await this.repo.query<{ cursor: string; ledger_sequence: string }>(
+        "SELECT cursor, ledger_sequence FROM event_cursors WHERE id = 'default' LIMIT 1",
+      );
+      if (rows && rows.length > 0) {
+        return { cursor: rows[0].cursor, ledger: Number(rows[0].ledger_sequence) };
+      }
+    } catch {
+      // Fallback to in-memory cursor
+    }
+    return this.cursor ? { cursor: this.cursor, ledger: this.ledger } : null;
+  }
+
+  async saveCursor(cursor: string, ledger: number) {
+    this.cursor = cursor;
+    this.ledger = ledger;
+    try {
+      await this.repo.query(
+        `INSERT INTO event_cursors (id, cursor, ledger_sequence, last_event_timestamp, updated_at)
+         VALUES ('default', $1, $2, NOW(), NOW())
+         ON CONFLICT (id) DO UPDATE SET
+           cursor = EXCLUDED.cursor,
+           ledger_sequence = EXCLUDED.ledger_sequence,
+           last_event_timestamp = NOW(),
+           updated_at = NOW()`,
+        [cursor, ledger.toString()],
+      );
+    } catch {
+      // Fallback
+    }
+  }
+
+  async upsertRequest(req: Partial<RequestRow> & { id: string }) {
+    await this.repo.upsertRequest(req);
+  }
+
+  async upsertReport(rep: Partial<ReportRow> & { request_id: string; reporter_address: string }) {
+    await this.repo.upsertReport(rep);
+  }
+
+  async upsertObservation(obs: Partial<ObservationRow> & { request_id: string }) {
+    await this.repo.upsertObservation(obs);
+  }
+
+  async upsertPayout(payout: Partial<PayoutRow> & { request_id: string; reporter_address: string }) {
+    const fullPayout = payout as PayoutRow;
+    if (fullPayout.id) {
+      await this.repo.upsertPayout(fullPayout);
+    }
+  }
 }
 
 export class InMemoryIndexerStateStore implements IndexerStateStore {
@@ -70,13 +142,13 @@ export class InMemoryIndexerStateStore implements IndexerStateStore {
 }
 
 export class EventIndexer {
-  private rpcClient: MockStellarRpcClient;
+  private rpcClient: AnyStellarRpcClient;
   private store: IndexerStateStore;
   private startLedger: number;
   public processedEventsCount = 0;
   public lagLedgers = 0;
 
-  constructor(rpcClient: MockStellarRpcClient, store: IndexerStateStore, startLedger = 100000) {
+  constructor(rpcClient: AnyStellarRpcClient, store: IndexerStateStore, startLedger = 100000) {
     this.rpcClient = rpcClient;
     this.store = store;
     this.startLedger = startLedger;
@@ -90,14 +162,15 @@ export class EventIndexer {
     const currentCursor = saved ? saved.cursor : undefined;
 
     // Detect ledger gap beyond RPC retention limits
-    if (queryStartLedger < this.rpcClient.oldestLedger) {
+    const oldest = (this.rpcClient as { oldestLedger?: number }).oldestLedger;
+    if (oldest !== undefined && queryStartLedger < oldest) {
       console.warn(
-        `[BACKFILL REQUIRED] Ingestion gap detected: cursor ledger ${queryStartLedger} < oldest RPC ledger ${this.rpcClient.oldestLedger}. Triggering backfill strategy.`,
+        `[BACKFILL REQUIRED] Ingestion gap detected: cursor ledger ${queryStartLedger} < oldest RPC ledger ${oldest}. Triggering backfill strategy.`,
       );
       // Fast forward to oldest available ledger as part of fallback, or run archive sync
     }
 
-    const effectiveStartLedger = Math.max(queryStartLedger, this.rpcClient.oldestLedger);
+    const effectiveStartLedger = oldest !== undefined ? Math.max(queryStartLedger, oldest) : queryStartLedger;
     const filters: GetEventsFilter[] = [{ type: 'contract' }];
 
     const res = await this.rpcClient.getEvents(effectiveStartLedger, filters, currentCursor, limit);

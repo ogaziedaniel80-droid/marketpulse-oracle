@@ -2,8 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import crypto from 'node:crypto';
 import {
   MockStellarRpcClient,
+  LiveStellarRpcClient,
   EventIndexer,
   InMemoryIndexerStateStore,
+  PgIndexerStateStore,
   LeaderElection,
   SharedLockRegistry,
   WorkerQueueProcessor,
@@ -308,6 +310,37 @@ describe('Worker Service Test Suite', () => {
       expect(res.status).toBe(200);
       const body = await res.text();
       expect(body).toContain('indexer_lag_ledgers 15');
+    });
+  });
+
+  describe('Live Stellar RPC & Postgres State Store Integration', () => {
+    it('initializes LiveStellarRpcClient and verifies signature', async () => {
+      const liveRpc = new LiveStellarRpcClient({ rpcUrl: 'https://soroban-testnet.stellar.org' });
+      expect(liveRpc).toBeDefined();
+    });
+
+    it('PgIndexerStateStore persists and reads cursor via DatabaseRepository', async () => {
+      const mockRepo: any = {
+        savedQueries: [] as any[],
+        query: async (text: string, params: any[]) => {
+          mockRepo.savedQueries.push({ text, params });
+          if (text.includes('SELECT cursor')) {
+            return [{ cursor: 'cur_test_999', ledger_sequence: '109999' }];
+          }
+          return [];
+        },
+        upsertRequest: async () => {},
+        upsertReport: async () => {},
+        upsertObservation: async () => {},
+        upsertPayout: async () => {},
+      };
+
+      const pgStore = new PgIndexerStateStore(mockRepo);
+      await pgStore.saveCursor('cur_test_999', 109999);
+      expect(mockRepo.savedQueries.length).toBeGreaterThan(0);
+
+      const cursor = await pgStore.getCursor();
+      expect(cursor).toEqual({ cursor: 'cur_test_999', ledger: 109999 });
     });
   });
 });

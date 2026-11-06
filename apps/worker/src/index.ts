@@ -1,36 +1,75 @@
 import { MockStellarRpcClient } from './indexer/mock-rpc.js';
-import { EventIndexer, InMemoryIndexerStateStore } from './indexer/indexer.js';
+import { LiveStellarRpcClient } from './indexer/live-rpc.js';
+import {
+  EventIndexer,
+  InMemoryIndexerStateStore,
+  PgIndexerStateStore,
+  type IndexerStateStore,
+  type AnyStellarRpcClient,
+} from './indexer/indexer.js';
 import { WorkerQueueProcessor } from './queues/queue.js';
 import { LeaderElection } from './leader/election.js';
 import { WorkerMetrics } from './metrics/metrics.js';
-import { createServiceContainer } from '@marketpulse/shared';
+import { createServiceContainer, PostgresRepository } from '@marketpulse/shared';
 
 export * from './indexer/types.js';
 export * from './indexer/mock-rpc.js';
+export * from './indexer/live-rpc.js';
 export * from './indexer/indexer.js';
 export * from './queues/types.js';
 export * from './queues/queue.js';
 export * from './leader/election.js';
 export * from './metrics/metrics.js';
 
+export interface WorkerDaemonOptions {
+  instanceId?: string;
+  rpcClient?: AnyStellarRpcClient;
+  store?: IndexerStateStore;
+  redisUrl?: string;
+  metricsPort?: number;
+}
+
 export class WorkerDaemon {
-  public rpcClient: MockStellarRpcClient;
+  public rpcClient: AnyStellarRpcClient;
   public indexer: EventIndexer;
-  public store: InMemoryIndexerStateStore;
+  public store: IndexerStateStore;
   public queue: WorkerQueueProcessor;
   public election: LeaderElection;
   public metrics: WorkerMetrics;
   private running = false;
   private pollInterval?: NodeJS.Timeout;
 
-  constructor(instanceId = `worker_${Date.now()}`) {
+  constructor(options: string | WorkerDaemonOptions = `worker_${Date.now()}`) {
+    const opts: WorkerDaemonOptions =
+      typeof options === 'string' ? { instanceId: options } : options;
+    const instanceId = opts.instanceId || `worker_${Date.now()}`;
     const services = createServiceContainer();
-    this.rpcClient = new MockStellarRpcClient();
-    this.store = new InMemoryIndexerStateStore();
+
+    if (opts.rpcClient) {
+      this.rpcClient = opts.rpcClient;
+    } else if (process.env.STELLAR_RPC_URL) {
+      this.rpcClient = new LiveStellarRpcClient({ rpcUrl: process.env.STELLAR_RPC_URL });
+    } else {
+      this.rpcClient = new MockStellarRpcClient();
+    }
+
+    if (opts.store) {
+      this.store = opts.store;
+    } else if (process.env.DATABASE_URL) {
+      this.store = new PgIndexerStateStore(new PostgresRepository(process.env.DATABASE_URL));
+    } else {
+      this.store = new InMemoryIndexerStateStore();
+    }
+
     this.indexer = new EventIndexer(this.rpcClient, this.store);
     this.queue = new WorkerQueueProcessor(services);
-    this.election = new LeaderElection({ instanceId });
+    const redisUrl = opts.redisUrl || process.env.REDIS_URL;
+    this.election = new LeaderElection({ instanceId, redisUrl });
     this.metrics = new WorkerMetrics();
+
+    if (redisUrl) {
+      this.queue.startBullWorker(redisUrl).catch(() => {});
+    }
   }
 
   public async start(metricsPort = 9090): Promise<void> {

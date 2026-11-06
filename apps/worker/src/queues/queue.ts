@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { Queue, Worker, type JobsOptions } from 'bullmq';
+import { Redis } from 'ioredis';
 import type {
   JobName,
   JobResult,
@@ -22,9 +24,58 @@ export class WorkerQueueProcessor {
     timestamp: Date;
   }> = [];
   public deliveredWebhooks: Array<{ url: string; signature: string; payload: string }> = [];
+  private bullQueue?: Queue;
+  private bullWorker?: Worker;
 
   constructor(services: ServiceContainer) {
     this.services = services;
+  }
+
+  public async startBullWorker(redisConnectionOrUrl: string | Redis, queueName = 'marketpulse-tasks'): Promise<void> {
+    try {
+      const connection =
+        typeof redisConnectionOrUrl === 'string'
+          ? new Redis(redisConnectionOrUrl, { maxRetriesPerRequest: null, lazyConnect: true })
+          : redisConnectionOrUrl;
+
+      if (typeof redisConnectionOrUrl === 'string') {
+        await (connection as Redis).connect().catch(() => {});
+      }
+
+      this.bullQueue = new Queue(queueName, { connection: connection as any });
+      this.bullWorker = new Worker(
+        queueName,
+        async (job) => {
+          return this.handleJob(job.name as JobName, job.data);
+        },
+        { connection: connection as any },
+      );
+    } catch {
+      // Graceful fallback to in-memory processing
+    }
+  }
+
+  public async enqueue(name: JobName, payload: unknown, options?: JobsOptions): Promise<void> {
+    if (this.bullQueue) {
+      try {
+        await this.bullQueue.add(name, payload, options);
+        return;
+      } catch {
+        // Fallback to sync execution
+      }
+    }
+    await this.handleJob(name, payload);
+  }
+
+  public async close(): Promise<void> {
+    if (this.bullWorker) {
+      await this.bullWorker.close();
+      this.bullWorker = undefined;
+    }
+    if (this.bullQueue) {
+      await this.bullQueue.close();
+      this.bullQueue = undefined;
+    }
   }
 
   /**

@@ -1,7 +1,11 @@
+import { Redis } from 'ioredis';
+
 export interface LeaderElectionOptions {
   instanceId: string;
   leaseDurationMs?: number;
   lockKey?: string;
+  redisUrl?: string;
+  redisClient?: Redis;
   onElected?: () => void;
   onDemoted?: () => void;
 }
@@ -62,6 +66,7 @@ export class LeaderElection {
   public leaseDurationMs: number;
   public lockKey: string;
   private registry: SharedLockRegistry;
+  private redis?: Redis;
   private _isLeader = false;
   private heartbeatInterval?: NodeJS.Timeout;
 
@@ -70,9 +75,28 @@ export class LeaderElection {
     this.leaseDurationMs = options.leaseDurationMs || 5000;
     this.lockKey = options.lockKey || 'marketpulse_worker_leader';
     this.registry = registry || SharedLockRegistry.getInstance();
+    if (options.redisClient) {
+      this.redis = options.redisClient;
+    } else if (options.redisUrl) {
+      try {
+        this.redis = new Redis(options.redisUrl, { lazyConnect: true });
+        this.redis.connect().catch(() => {});
+      } catch {
+        // Fallback to in-memory registry
+      }
+    }
   }
 
   public async acquire(): Promise<boolean> {
+    if (this.redis) {
+      try {
+        const res = await this.redis.set(this.lockKey, this.instanceId, 'PX', this.leaseDurationMs, 'NX');
+        this._isLeader = res === 'OK';
+        return this._isLeader;
+      } catch {
+        // Fallback
+      }
+    }
     const acquired = this.registry.tryAcquire(this.lockKey, this.instanceId, this.leaseDurationMs);
     this._isLeader = acquired;
     return acquired;
@@ -80,19 +104,49 @@ export class LeaderElection {
 
   public async renew(): Promise<boolean> {
     if (!this._isLeader) return false;
+    if (this.redis) {
+      try {
+        const script = `
+          if redis.call("get", KEYS[1]) == ARGV[1] then
+            return redis.call("pexpire", KEYS[1], ARGV[2])
+          else
+            return 0
+          end
+        `;
+        const res = await this.redis.eval(script, 1, this.lockKey, this.instanceId, this.leaseDurationMs);
+        this._isLeader = res === 1;
+        return this._isLeader;
+      } catch {
+        // Fallback
+      }
+    }
     const renewed = this.registry.tryAcquire(this.lockKey, this.instanceId, this.leaseDurationMs);
     this._isLeader = renewed;
     return renewed;
   }
 
   public async release(): Promise<boolean> {
+    if (this.redis) {
+      try {
+        const script = `
+          if redis.call("get", KEYS[1]) == ARGV[1] then
+            return redis.call("del", KEYS[1])
+          else
+            return 0
+          end
+        `;
+        await this.redis.eval(script, 1, this.lockKey, this.instanceId);
+      } catch {
+        // Fallback
+      }
+    }
     const released = this.registry.release(this.lockKey, this.instanceId);
     this._isLeader = false;
     return released;
   }
 
   public isLeader(): boolean {
-    return this._isLeader && this.registry.getHolder(this.lockKey) === this.instanceId;
+    return this._isLeader;
   }
 
   public startHeartbeat(intervalMs = 2000): void {
