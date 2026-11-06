@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { Queue, Worker, type JobsOptions } from 'bullmq';
+import { Queue, Worker, type ConnectionOptions, type JobsOptions } from 'bullmq';
 import { Redis } from 'ioredis';
 import type {
   JobName,
@@ -32,7 +32,10 @@ export class WorkerQueueProcessor {
     this.services = services;
   }
 
-  public async startBullWorker(redisConnectionOrUrl: string | Redis, queueName = 'marketpulse-tasks'): Promise<void> {
+  public async startBullWorker(
+    redisConnectionOrUrl: string | Redis,
+    queueName = 'marketpulse-tasks',
+  ): Promise<void> {
     try {
       const connection =
         typeof redisConnectionOrUrl === 'string'
@@ -43,13 +46,15 @@ export class WorkerQueueProcessor {
         await (connection as Redis).connect().catch(() => {});
       }
 
-      this.bullQueue = new Queue(queueName, { connection: connection as any });
+      this.bullQueue = new Queue(queueName, {
+        connection: connection as unknown as ConnectionOptions,
+      });
       this.bullWorker = new Worker(
         queueName,
         async (job) => {
           return this.handleJob(job.name as JobName, job.data);
         },
-        { connection: connection as any },
+        { connection: connection as unknown as ConnectionOptions },
       );
     } catch {
       // Graceful fallback to in-memory processing
@@ -114,7 +119,9 @@ export class WorkerQueueProcessor {
           result = await this.handleWebhookDelivery(payload as WebhookDeliveryPayload);
           break;
         case 'collusion_detection_sweep':
-          result = await this.handleCollusionDetectionSweep(payload as CollusionDetectionSweepPayload);
+          result = await this.handleCollusionDetectionSweep(
+            payload as CollusionDetectionSweepPayload,
+          );
           break;
         default:
           throw new Error(`Unknown job name: ${name}`);
@@ -287,8 +294,11 @@ export class WorkerQueueProcessor {
   }
 
   // 9. Collusion Detection Sweep: detects timing bursts, price consensus rings, and duplicate evidence
-  private async handleCollusionDetectionSweep(payload: CollusionDetectionSweepPayload): Promise<JobResult> {
-    const flags: Array<{ type: string; severity: string; reporters: string[]; details: string }> = [];
+  private async handleCollusionDetectionSweep(
+    payload: CollusionDetectionSweepPayload,
+  ): Promise<JobResult> {
+    const flags: Array<{ type: string; severity: string; reporters: string[]; details: string }> =
+      [];
     const submissions = payload.submissions || [];
 
     // Check duplicate evidence hashes

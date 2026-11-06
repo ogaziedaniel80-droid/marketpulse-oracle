@@ -212,7 +212,7 @@ export class BrowserWebAuthnPasskeyAdapter extends PasskeyKitWalletAdapter {
           },
           timeout: 60000,
         },
-      })) as any;
+      })) as unknown as { rawId?: ArrayBuffer; id?: string } | null;
 
       const rawIdHex = credential?.rawId
         ? Buffer.from(credential.rawId).toString('hex')
@@ -262,11 +262,14 @@ export class BrowserWebAuthnPasskeyAdapter extends PasskeyKitWalletAdapter {
           ],
           userVerification: 'required',
         },
-      })) as any;
+      })) as unknown as { response?: { signature?: ArrayBuffer } } | null;
 
       const signatureHex = assertion?.response?.signature
         ? Buffer.from(assertion.response.signature).toString('hex')
-        : crypto.createHmac('sha256', this.account.publicKeySecp256r1Hex).update(payloadHashHex).digest('hex');
+        : crypto
+            .createHmac('sha256', this.account.publicKeySecp256r1Hex)
+            .update(payloadHashHex)
+            .digest('hex');
 
       const sponsoredXdr = Buffer.from(
         JSON.stringify({

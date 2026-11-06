@@ -19,12 +19,16 @@ export interface DatabaseRepository {
   upsertMarket(market: MarketRow): Promise<void>;
   getMarkets(): Promise<MarketRow[]>;
   getMarketById(id: string): Promise<MarketRow | null>;
-  upsertReporter(reporter: Partial<ReporterRow> & { id: string; wallet_address: string }): Promise<void>;
+  upsertReporter(
+    reporter: Partial<ReporterRow> & { id: string; wallet_address: string },
+  ): Promise<void>;
   getReporterByWallet(wallet: string): Promise<ReporterRow | null>;
   upsertRequest(req: Partial<RequestRow> & { id: string }): Promise<void>;
   getRequestById(id: string): Promise<RequestRow | null>;
   getOpenRequests(): Promise<RequestRow[]>;
-  upsertReport(report: Partial<ReportRow> & { request_id: string; reporter_address: string }): Promise<void>;
+  upsertReport(
+    report: Partial<ReportRow> & { request_id: string; reporter_address: string },
+  ): Promise<void>;
   getReportsForRequest(requestId: string): Promise<ReportRow[]>;
   upsertObservation(obs: Partial<ObservationRow> & { request_id: string }): Promise<void>;
   getObservations(filter?: {
@@ -35,7 +39,11 @@ export interface DatabaseRepository {
     limit?: number;
     offset?: number;
   }): Promise<ObservationRow[]>;
-  getLatestObservation(dataType: string, marketId?: string, geohash?: string): Promise<ObservationRow | null>;
+  getLatestObservation(
+    dataType: string,
+    marketId?: string,
+    geohash?: string,
+  ): Promise<ObservationRow | null>;
   upsertEvidence(ev: EvidenceRow): Promise<void>;
   getEvidenceByHash(hash: string): Promise<EvidenceRow | null>;
   insertAdminAction(action: AdminActionRow): Promise<void>;
@@ -77,7 +85,16 @@ export class PostgresRepository implements DatabaseRepository {
          geohash = EXCLUDED.geohash,
          metadata = EXCLUDED.metadata,
          updated_at = EXCLUDED.updated_at`,
-      [m.id, m.name, m.city, m.country_code, m.geohash, JSON.stringify(m.metadata || {}), m.created_at, m.updated_at],
+      [
+        m.id,
+        m.name,
+        m.city,
+        m.country_code,
+        m.geohash,
+        JSON.stringify(m.metadata || {}),
+        m.created_at,
+        m.updated_at,
+      ],
     );
   }
 
@@ -90,7 +107,9 @@ export class PostgresRepository implements DatabaseRepository {
     return rows[0] || null;
   }
 
-  async upsertReporter(r: Partial<ReporterRow> & { id: string; wallet_address: string }): Promise<void> {
+  async upsertReporter(
+    r: Partial<ReporterRow> & { id: string; wallet_address: string },
+  ): Promise<void> {
     await this.pool.query(
       `INSERT INTO reporters (id, wallet_address, phone_hash, phone_salt, country_code, reputation_score, tier, status, stake_cap, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -117,7 +136,10 @@ export class PostgresRepository implements DatabaseRepository {
   }
 
   async getReporterByWallet(wallet: string): Promise<ReporterRow | null> {
-    const rows = await this.query<ReporterRow>('SELECT * FROM reporters WHERE wallet_address = $1 OR id = $1', [wallet]);
+    const rows = await this.query<ReporterRow>(
+      'SELECT * FROM reporters WHERE wallet_address = $1 OR id = $1',
+      [wallet],
+    );
     return rows[0] || null;
   }
 
@@ -156,10 +178,14 @@ export class PostgresRepository implements DatabaseRepository {
   }
 
   async getOpenRequests(): Promise<RequestRow[]> {
-    return this.query<RequestRow>("SELECT * FROM requests WHERE status = 'open' ORDER BY created_at DESC");
+    return this.query<RequestRow>(
+      "SELECT * FROM requests WHERE status = 'open' ORDER BY created_at DESC",
+    );
   }
 
-  async upsertReport(rep: Partial<ReportRow> & { request_id: string; reporter_address: string }): Promise<void> {
+  async upsertReport(
+    rep: Partial<ReportRow> & { request_id: string; reporter_address: string },
+  ): Promise<void> {
     const id = rep.id || `${rep.request_id}:${rep.reporter_address}`;
     await this.pool.query(
       `INSERT INTO reports (id, request_id, reporter_address, commitment, value, evidence_hash, stake, weight_bps, revealed, outcome, created_at, revealed_at)
@@ -188,7 +214,10 @@ export class PostgresRepository implements DatabaseRepository {
   }
 
   async getReportsForRequest(requestId: string): Promise<ReportRow[]> {
-    return this.query<ReportRow>('SELECT * FROM reports WHERE request_id = $1 ORDER BY created_at ASC', [requestId]);
+    return this.query<ReportRow>(
+      'SELECT * FROM reports WHERE request_id = $1 ORDER BY created_at ASC',
+      [requestId],
+    );
   }
 
   async upsertObservation(obs: Partial<ObservationRow> & { request_id: string }): Promise<void> {
@@ -218,14 +247,16 @@ export class PostgresRepository implements DatabaseRepository {
     );
   }
 
-  async getObservations(filter: {
-    dataType?: string;
-    geohash?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<ObservationRow[]> {
+  async getObservations(
+    filter: {
+      dataType?: string;
+      geohash?: string;
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<ObservationRow[]> {
     const conditions: string[] = [];
     const params: unknown[] = [];
 
@@ -257,7 +288,11 @@ export class PostgresRepository implements DatabaseRepository {
     );
   }
 
-  async getLatestObservation(dataType: string, marketId?: string, geohash?: string): Promise<ObservationRow | null> {
+  async getLatestObservation(
+    dataType: string,
+    marketId?: string,
+    geohash?: string,
+  ): Promise<ObservationRow | null> {
     const conditions = ['UPPER(data_type) = $1'];
     const params: unknown[] = [dataType.toUpperCase()];
 
@@ -296,7 +331,9 @@ export class PostgresRepository implements DatabaseRepository {
   }
 
   async getEvidenceByHash(hash: string): Promise<EvidenceRow | null> {
-    const rows = await this.query<EvidenceRow>('SELECT * FROM evidence WHERE evidence_hash = $1', [hash]);
+    const rows = await this.query<EvidenceRow>('SELECT * FROM evidence WHERE evidence_hash = $1', [
+      hash,
+    ]);
     return rows[0] || null;
   }
 
@@ -304,7 +341,14 @@ export class PostgresRepository implements DatabaseRepository {
     await this.pool.query(
       `INSERT INTO admin_actions (id, admin_address, action, target_id, details, created_at)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [action.id, action.admin_address, action.action, action.target_id, JSON.stringify(action.details || {}), action.created_at],
+      [
+        action.id,
+        action.admin_address,
+        action.action,
+        action.target_id,
+        JSON.stringify(action.details || {}),
+        action.created_at,
+      ],
     );
   }
 
@@ -313,12 +357,27 @@ export class PostgresRepository implements DatabaseRepository {
       `INSERT INTO payouts (id, request_id, reporter_address, bounty_reward, stake_returned, slash_bonus, slash_penalty, reason_code, claimed, claimed_at, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (id) DO UPDATE SET claimed = EXCLUDED.claimed, claimed_at = EXCLUDED.claimed_at`,
-      [p.id, p.request_id, p.reporter_address, p.bounty_reward, p.stake_returned, p.slash_bonus, p.slash_penalty, p.reason_code, p.claimed, p.claimed_at || null, p.created_at],
+      [
+        p.id,
+        p.request_id,
+        p.reporter_address,
+        p.bounty_reward,
+        p.stake_returned,
+        p.slash_bonus,
+        p.slash_penalty,
+        p.reason_code,
+        p.claimed,
+        p.claimed_at || null,
+        p.created_at,
+      ],
     );
   }
 
   async getPayoutsByReporter(reporterAddress: string): Promise<PayoutRow[]> {
-    return this.query<PayoutRow>('SELECT * FROM payouts WHERE reporter_address = $1 ORDER BY created_at DESC', [reporterAddress]);
+    return this.query<PayoutRow>(
+      'SELECT * FROM payouts WHERE reporter_address = $1 ORDER BY created_at DESC',
+      [reporterAddress],
+    );
   }
 
   async upsertApiKey(key: ApiKeyRow): Promise<void> {
@@ -326,12 +385,26 @@ export class PostgresRepository implements DatabaseRepository {
       `INSERT INTO api_keys (id, name, key_hash, key_prefix, tier, scopes, rate_limit_per_min, is_active, created_at, last_used_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (id) DO NOTHING`,
-      [key.id, key.name, key.key_hash, key.key_prefix, key.tier, key.scopes, key.rate_limit_per_min, key.is_active, key.created_at, key.last_used_at || null],
+      [
+        key.id,
+        key.name,
+        key.key_hash,
+        key.key_prefix,
+        key.tier,
+        key.scopes,
+        key.rate_limit_per_min,
+        key.is_active,
+        key.created_at,
+        key.last_used_at || null,
+      ],
     );
   }
 
   async getApiKeyByKey(key: string): Promise<ApiKeyRow | null> {
-    const rows = await this.query<ApiKeyRow>('SELECT * FROM api_keys WHERE key_hash = $1 AND is_active = true', [key]);
+    const rows = await this.query<ApiKeyRow>(
+      'SELECT * FROM api_keys WHERE key_hash = $1 AND is_active = true',
+      [key],
+    );
     return rows[0] || null;
   }
 
@@ -339,7 +412,16 @@ export class PostgresRepository implements DatabaseRepository {
     await this.pool.query(
       `INSERT INTO webhooks (id, api_key_id, url, event_types, secret, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [w.id, w.api_key_id || null, w.url, w.event_types, w.secret, w.is_active, w.created_at, w.updated_at],
+      [
+        w.id,
+        w.api_key_id || null,
+        w.url,
+        w.event_types,
+        w.secret,
+        w.is_active,
+        w.created_at,
+        w.updated_at,
+      ],
     );
   }
 
@@ -347,7 +429,17 @@ export class PostgresRepository implements DatabaseRepository {
     await this.pool.query(
       `INSERT INTO audits (id, request_id, sample_rate_bps, auditor_address, status, ground_truth_value, notes, completed_at, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [a.id, a.request_id, a.sample_rate_bps, a.auditor_address || null, a.status, a.ground_truth_value || null, a.notes || null, a.completed_at || null, a.created_at],
+      [
+        a.id,
+        a.request_id,
+        a.sample_rate_bps,
+        a.auditor_address || null,
+        a.status,
+        a.ground_truth_value || null,
+        a.notes || null,
+        a.completed_at || null,
+        a.created_at,
+      ],
     );
   }
 }

@@ -3,8 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { ApiState } from '../state.js';
 import { createAuthHooks } from '../plugins/auth.js';
-import { EvidenceCheckClient } from '@marketpulse/shared';
-import { EvidenceHashMismatchError } from '@marketpulse/shared';
+import { EvidenceCheckClient, EvidenceHashMismatchError } from '@marketpulse/shared';
+import type { FlagRow } from '@marketpulse/shared';
 
 export function registerReporterRoutes(app: FastifyInstance, state: ApiState): void {
   const auth = createAuthHooks(state);
@@ -228,10 +228,10 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
           for (const f of checkResult.flags) {
             state.flags.push({
               id: crypto.randomUUID(),
-              flag_type: (f.flagType as any) || 'evidence_duplicate',
+              flag_type: (f.flagType as FlagRow['flag_type']) || 'evidence_duplicate',
               request_id: body.request_id,
               reporter_address: req.reporter?.wallet_address || 'GDEMO_REPORTER',
-              severity: (f.severity as any) || 'medium',
+              severity: (f.severity as FlagRow['severity']) || 'medium',
               details: { description: f.description, pHash: checkResult.pHash },
               reviewed: false,
               created_at: new Date(),
@@ -261,16 +261,18 @@ export function registerReporterRoutes(app: FastifyInstance, state: ApiState): v
         state.evidence.set(uploadRes.sha256, evRecord);
 
         if (state.db) {
-          state.db.upsertEvidence({
-            id: evId,
-            evidence_hash: uploadRes.sha256,
-            storage_key: uploadRes.key,
-            mime_type: body.mime_type,
-            file_size_bytes: uploadRes.size,
-            exif_stripped_key: uploadRes.exifStrippedKey,
-            check_results: evRecord.check_results,
-            created_at: new Date(),
-          }).catch(() => {});
+          state.db
+            .upsertEvidence({
+              id: evId,
+              evidence_hash: uploadRes.sha256,
+              storage_key: uploadRes.key,
+              mime_type: body.mime_type,
+              file_size_bytes: uploadRes.size,
+              exif_stripped_key: uploadRes.exifStrippedKey,
+              check_results: evRecord.check_results,
+              created_at: new Date(),
+            })
+            .catch(() => {});
         }
 
         return reply.status(201).send({

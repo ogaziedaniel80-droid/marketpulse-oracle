@@ -99,7 +99,12 @@ export class ReportEngineContract {
     this.networkPassphrase = config.networkPassphrase || 'Test SDF Network ; September 2015';
   }
 
-  prepareCommit(reporter: string, requestId: number, commitmentHex: string, stake: bigint): PreparedInvocation {
+  prepareCommit(
+    reporter: string,
+    requestId: number,
+    commitmentHex: string,
+    stake: bigint,
+  ): PreparedInvocation {
     return {
       contractId: this.contractId,
       method: 'commit',
@@ -113,7 +118,13 @@ export class ReportEngineContract {
     };
   }
 
-  prepareReveal(reporter: string, requestId: number, value: bigint, saltHex: string, evidenceHashHex: string): PreparedInvocation {
+  prepareReveal(
+    reporter: string,
+    requestId: number,
+    value: bigint,
+    saltHex: string,
+    evidenceHashHex: string,
+  ): PreparedInvocation {
     return {
       contractId: this.contractId,
       method: 'reveal',
@@ -167,7 +178,12 @@ export class DisputesContract {
     this.networkPassphrase = config.networkPassphrase || 'Test SDF Network ; September 2015';
   }
 
-  prepareChallenge(challenger: string, requestId: number, bond: bigint, reasonSymbol: string): PreparedInvocation {
+  prepareChallenge(
+    challenger: string,
+    requestId: number,
+    bond: bigint,
+    reasonSymbol: string,
+  ): PreparedInvocation {
     return {
       contractId: this.contractId,
       method: 'challenge',

@@ -317,7 +317,12 @@ describe('MarketPulse Web PWA Suite', () => {
   describe('7. Typed Contract Clients & UI Primitives Integration', () => {
     it('prepares invocations with typed Contract clients from @marketpulse/bindings', () => {
       const reportEngine = new ReportEngineContract({ contractId: 'CREPORT_ENGINE_123' });
-      const prepCommit = reportEngine.prepareCommit('GREPORTER_1', 101, '0123'.repeat(16), 10000000n);
+      const prepCommit = reportEngine.prepareCommit(
+        'GREPORTER_1',
+        101,
+        '0123'.repeat(16),
+        10000000n,
+      );
       expect(prepCommit.contractId).toBe('CREPORT_ENGINE_123');
       expect(prepCommit.method).toBe('commit');
       expect(prepCommit.args.request_id).toBe(101);

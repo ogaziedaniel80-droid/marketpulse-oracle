@@ -21,7 +21,10 @@ export class PinataIpfsPinner implements IpfsPinner {
     this.jwt = config.jwt;
     this.apiKey = config.apiKey;
     this.secretApiKey = config.secretApiKey;
-    this.gatewayUrl = (config.gatewayUrl || 'https://gateway.pinata.cloud/ipfs').replace(/\/+$/, '');
+    this.gatewayUrl = (config.gatewayUrl || 'https://gateway.pinata.cloud/ipfs').replace(
+      /\/+$/,
+      '',
+    );
   }
 
   private getAuthHeaders(): Record<string, string> {

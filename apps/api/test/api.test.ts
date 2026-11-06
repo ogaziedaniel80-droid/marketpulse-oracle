@@ -576,9 +576,15 @@ describe('Fastify API Test Suite', () => {
   describe('Database Repository Integration', () => {
     it('persists requests and observations to database repository when provided', async () => {
       const mockDb: any = {
-        upsertRequest: async (req: any) => { mockDb.lastRequest = req; },
-        upsertObservation: async (obs: any) => { mockDb.lastObservation = obs; },
-        insertAdminAction: async (act: any) => { mockDb.lastAdminAction = act; },
+        upsertRequest: async (req: any) => {
+          mockDb.lastRequest = req;
+        },
+        upsertObservation: async (obs: any) => {
+          mockDb.lastObservation = obs;
+        },
+        insertAdminAction: async (act: any) => {
+          mockDb.lastAdminAction = act;
+        },
       };
 
       const persistentState = new ApiState({ db: mockDb });

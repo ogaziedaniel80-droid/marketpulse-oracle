@@ -23,6 +23,23 @@ export interface EvidenceCheckResult {
   }>;
 }
 
+interface RawFlag {
+  flag_type: string;
+  severity: string;
+  description: string;
+}
+
+interface RawCheckResponse {
+  is_valid?: boolean;
+  p_hash?: string;
+  duplicate_detected?: boolean;
+  duplicate_matched_id?: string;
+  has_exif?: boolean;
+  market_distance_meters?: number;
+  tampering_score?: number;
+  flags?: RawFlag[];
+}
+
 export class EvidenceCheckClient {
   private serviceUrl: string;
 
@@ -47,7 +64,7 @@ export class EvidenceCheckClient {
       });
 
       if (response.ok) {
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as RawCheckResponse;
         return {
           isValid: data.is_valid ?? true,
           pHash: data.p_hash || '',
@@ -56,7 +73,7 @@ export class EvidenceCheckClient {
           hasExif: data.has_exif ?? false,
           marketDistanceMeters: data.market_distance_meters,
           tamperingScore: data.tampering_score ?? 0,
-          flags: (data.flags || []).map((f: any) => ({
+          flags: (data.flags || []).map((f: RawFlag) => ({
             flagType: f.flag_type,
             severity: f.severity,
             description: f.description,

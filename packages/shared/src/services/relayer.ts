@@ -119,10 +119,8 @@ export class StellarRpcRelayer implements Relayer {
         const data = (await response.json()) as {
           balances: Array<{ asset_type: string; asset_code?: string; balance: string }>;
         };
-        const xlmBalance =
-          data.balances.find((b) => b.asset_type === 'native')?.balance || '0.00';
-        const usdcBalance =
-          data.balances.find((b) => b.asset_code === 'USDC')?.balance || '0.00';
+        const xlmBalance = data.balances.find((b) => b.asset_type === 'native')?.balance || '0.00';
+        const usdcBalance = data.balances.find((b) => b.asset_code === 'USDC')?.balance || '0.00';
 
         return {
           balanceXlm: xlmBalance,

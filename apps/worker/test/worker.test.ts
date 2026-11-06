@@ -277,9 +277,24 @@ describe('Worker Service Test Suite', () => {
       const res = await processor.handleJob('collusion_detection_sweep', {
         requestId: 'req_sweep_test',
         submissions: [
-          { reporterAddress: 'GREPORTER_1', value: '8200000', timestampSec: 1000, evidenceHash: 'ev_dup_1' },
-          { reporterAddress: 'GREPORTER_2', value: '8200000', timestampSec: 1002, evidenceHash: 'ev_dup_1' },
-          { reporterAddress: 'GREPORTER_3', value: '8250000', timestampSec: 1050, evidenceHash: 'ev_unique_3' },
+          {
+            reporterAddress: 'GREPORTER_1',
+            value: '8200000',
+            timestampSec: 1000,
+            evidenceHash: 'ev_dup_1',
+          },
+          {
+            reporterAddress: 'GREPORTER_2',
+            value: '8200000',
+            timestampSec: 1002,
+            evidenceHash: 'ev_dup_1',
+          },
+          {
+            reporterAddress: 'GREPORTER_3',
+            value: '8250000',
+            timestampSec: 1050,
+            evidenceHash: 'ev_unique_3',
+          },
         ],
       });
 

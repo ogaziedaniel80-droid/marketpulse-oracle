@@ -90,7 +90,13 @@ export class LeaderElection {
   public async acquire(): Promise<boolean> {
     if (this.redis) {
       try {
-        const res = await this.redis.set(this.lockKey, this.instanceId, 'PX', this.leaseDurationMs, 'NX');
+        const res = await this.redis.set(
+          this.lockKey,
+          this.instanceId,
+          'PX',
+          this.leaseDurationMs,
+          'NX',
+        );
         this._isLeader = res === 'OK';
         return this._isLeader;
       } catch {
@@ -113,7 +119,13 @@ export class LeaderElection {
             return 0
           end
         `;
-        const res = await this.redis.eval(script, 1, this.lockKey, this.instanceId, this.leaseDurationMs);
+        const res = await this.redis.eval(
+          script,
+          1,
+          this.lockKey,
+          this.instanceId,
+          this.leaseDurationMs,
+        );
         this._isLeader = res === 1;
         return this._isLeader;
       } catch {

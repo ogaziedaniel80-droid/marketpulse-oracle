@@ -1,9 +1,5 @@
 import crypto from 'node:crypto';
-import type {
-  ObjectStorage,
-  UploadOptions,
-  UploadResult,
-} from './index.js';
+import type { ObjectStorage, UploadOptions, UploadResult } from './index.js';
 import { EvidenceHashMismatchError } from './index.js';
 
 export interface S3StorageConfig {
@@ -75,7 +71,11 @@ export class S3ObjectStorage implements ObjectStorage {
     this.publicBaseUrl = config.publicBaseUrl?.replace(/\/+$/, '');
   }
 
-  private getAuthHeaders(method: string, path: string, payloadSha256: string): Record<string, string> {
+  private getAuthHeaders(
+    method: string,
+    path: string,
+    payloadSha256: string,
+  ): Record<string, string> {
     const headers: Record<string, string> = {
       'x-amz-content-sha256': payloadSha256,
       'x-amz-date': new Date().toISOString().replace(/[:-]|\.\d{3}/g, ''),
@@ -151,7 +151,10 @@ export class S3ObjectStorage implements ObjectStorage {
     };
   }
 
-  async get(key: string, bucket?: string): Promise<{ content: Buffer; contentType: string } | null> {
+  async get(
+    key: string,
+    bucket?: string,
+  ): Promise<{ content: Buffer; contentType: string } | null> {
     const b = bucket || this.defaultBucket;
     const url = `${this.endpoint}/${b}/${key}`;
     try {

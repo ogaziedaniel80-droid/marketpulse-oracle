@@ -214,7 +214,10 @@ describe('External Service Interfaces & Local Mocks', () => {
     test('PaystackBilling verifies webhook signatures', () => {
       const paystack = new PaystackBilling({ secretKey: 'sk_test_secret_123' });
       const payload = JSON.stringify({ event: 'charge.success', reference: 'ref_123' });
-      const signature = crypto.createHmac('sha512', 'sk_test_secret_123').update(payload).digest('hex');
+      const signature = crypto
+        .createHmac('sha512', 'sk_test_secret_123')
+        .update(payload)
+        .digest('hex');
 
       assert.equal(paystack.verifyWebhookSignature(payload, signature), true);
       assert.equal(paystack.verifyWebhookSignature(payload, 'bad_sig'), false);

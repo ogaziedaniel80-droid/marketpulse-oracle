@@ -1,7 +1,11 @@
 import type { StellarRpcEvent, GetEventsFilter, GetEventsResponse } from './types.js';
-import type { MockStellarRpcClient } from './mock-rpc.js';
-import type { LiveStellarRpcClient } from './live-rpc.js';
-import type { RequestRow, ReportRow, ObservationRow, PayoutRow, DatabaseRepository } from '@marketpulse/shared';
+import type {
+  RequestRow,
+  ReportRow,
+  ObservationRow,
+  PayoutRow,
+  DatabaseRepository,
+} from '@marketpulse/shared';
 
 export type AnyStellarRpcClient = {
   getEvents(
@@ -79,7 +83,9 @@ export class PgIndexerStateStore implements IndexerStateStore {
     await this.repo.upsertObservation(obs);
   }
 
-  async upsertPayout(payout: Partial<PayoutRow> & { request_id: string; reporter_address: string }) {
+  async upsertPayout(
+    payout: Partial<PayoutRow> & { request_id: string; reporter_address: string },
+  ) {
     const fullPayout = payout as PayoutRow;
     if (fullPayout.id) {
       await this.repo.upsertPayout(fullPayout);
@@ -170,7 +176,8 @@ export class EventIndexer {
       // Fast forward to oldest available ledger as part of fallback, or run archive sync
     }
 
-    const effectiveStartLedger = oldest !== undefined ? Math.max(queryStartLedger, oldest) : queryStartLedger;
+    const effectiveStartLedger =
+      oldest !== undefined ? Math.max(queryStartLedger, oldest) : queryStartLedger;
     const filters: GetEventsFilter[] = [{ type: 'contract' }];
 
     const res = await this.rpcClient.getEvents(effectiveStartLedger, filters, currentCursor, limit);

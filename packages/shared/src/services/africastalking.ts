@@ -20,9 +20,10 @@ export class AfricaTalkingSmsProvider implements SmsProvider {
     this.apiKey = config.apiKey;
     this.username = config.username;
     this.senderId = config.senderId;
-    this.baseUrl = config.isSandbox || config.username === 'sandbox'
-      ? 'https://api.sandbox.africastalking.com/version1/messaging'
-      : 'https://api.africastalking.com/version1/messaging';
+    this.baseUrl =
+      config.isSandbox || config.username === 'sandbox'
+        ? 'https://api.sandbox.africastalking.com/version1/messaging'
+        : 'https://api.africastalking.com/version1/messaging';
   }
 
   async sendSms(options: SendSmsOptions): Promise<SmsSendResult> {
@@ -48,7 +49,6 @@ export class AfricaTalkingSmsProvider implements SmsProvider {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
         return {
           success: false,
           messageId: '',

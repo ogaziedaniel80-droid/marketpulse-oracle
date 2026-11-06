@@ -4,7 +4,8 @@ export interface UIComponentProps {
   className?: string;
 }
 
-export type StatusBadgeType = 'active' | 'open' | 'resolving' | 'finalised' | 'disputed' | 'cancelled' | 'slashed';
+export type StatusBadgeType =
+  'active' | 'open' | 'resolving' | 'finalised' | 'disputed' | 'cancelled' | 'slashed';
 
 export function renderStatusBadge(status: StatusBadgeType): string {
   const styles: Record<StatusBadgeType, { bg: string; text: string; label: string }> = {

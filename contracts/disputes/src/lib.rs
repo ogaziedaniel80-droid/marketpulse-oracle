@@ -724,7 +724,7 @@ impl DisputesContract {
                 request_id,
                 upheld: true,
             }
-            .publish(&env);
+            .publish(env);
         } else {
             // Rejected: slash bond
             let audit_addr: Address = env
