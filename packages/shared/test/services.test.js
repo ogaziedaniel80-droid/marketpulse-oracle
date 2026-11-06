@@ -9,6 +9,12 @@ import {
   MockBilling,
   EvidenceHashMismatchError,
   createServiceContainer,
+  AfricaTalkingSmsProvider,
+  StellarRpcRelayer,
+  S3ObjectStorage,
+  stripJpegExif,
+  PinataIpfsPinner,
+  PaystackBilling,
 } from '../dist/index.js';
 
 describe('External Service Interfaces & Local Mocks', () => {
@@ -164,6 +170,54 @@ describe('External Service Interfaces & Local Mocks', () => {
       assert.ok(container.storage instanceof MockObjectStorage);
       assert.ok(container.ipfs instanceof MockIpfsPinner);
       assert.ok(container.billing instanceof MockBilling);
+    });
+
+    test('instantiates live providers when environment variables are set', () => {
+      const prevEnv = { ...process.env };
+      process.env.AFRICASTALKING_API_KEY = 'at_test_key';
+      process.env.AFRICASTALKING_USERNAME = 'sandbox';
+      process.env.STELLAR_RPC_URL = 'https://soroban-testnet.stellar.org';
+      process.env.RELAYER_ADDRESS = 'GRELAYER1234567890';
+      process.env.S3_ENDPOINT = 'http://localhost:9000';
+      process.env.PINATA_JWT = 'test_pinata_jwt';
+      process.env.PAYSTACK_SECRET_KEY = 'sk_test_paystack';
+
+      try {
+        const liveContainer = createServiceContainer();
+        assert.ok(liveContainer.sms instanceof AfricaTalkingSmsProvider);
+        assert.ok(liveContainer.relayer instanceof StellarRpcRelayer);
+        assert.ok(liveContainer.storage instanceof S3ObjectStorage);
+        assert.ok(liveContainer.ipfs instanceof PinataIpfsPinner);
+        assert.ok(liveContainer.billing instanceof PaystackBilling);
+      } finally {
+        process.env = prevEnv;
+      }
+    });
+
+    test('S3ObjectStorage strips JPEG EXIF marker correctly', async () => {
+      // Create minimal synthetic JPEG with SOI, APP1 (EXIF), and EOI
+      const exifMarker = Buffer.from([0xff, 0xe1, 0x00, 0x08, 0x45, 0x78, 0x69, 0x66]); // APP1 + "Exif"
+      const fakeJpeg = Buffer.concat([
+        Buffer.from([0xff, 0xd8]), // SOI
+        exifMarker,
+        Buffer.from([0xff, 0xd9]), // EOI
+      ]);
+
+      const stripped = stripJpegExif(fakeJpeg);
+      assert.ok(stripped.length < fakeJpeg.length);
+      assert.equal(stripped[0], 0xff);
+      assert.equal(stripped[1], 0xd8);
+      // Ensure 0xFF 0xE1 is no longer present
+      assert.equal(stripped.includes(Buffer.from([0xff, 0xe1])), false);
+    });
+
+    test('PaystackBilling verifies webhook signatures', () => {
+      const paystack = new PaystackBilling({ secretKey: 'sk_test_secret_123' });
+      const payload = JSON.stringify({ event: 'charge.success', reference: 'ref_123' });
+      const signature = crypto.createHmac('sha512', 'sk_test_secret_123').update(payload).digest('hex');
+
+      assert.equal(paystack.verifyWebhookSignature(payload, signature), true);
+      assert.equal(paystack.verifyWebhookSignature(payload, 'bad_sig'), false);
     });
   });
 });

@@ -372,6 +372,18 @@ export class MockBilling implements Billing {
   }
 }
 
+export * from './africastalking.js';
+export * from './relayer.js';
+export * from './s3.js';
+export * from './pinata.js';
+export * from './paystack.js';
+
+import { AfricaTalkingSmsProvider } from './africastalking.js';
+import { StellarRpcRelayer } from './relayer.js';
+import { S3ObjectStorage } from './s3.js';
+import { PinataIpfsPinner } from './pinata.js';
+import { PaystackBilling } from './paystack.js';
+
 // --- Service Factory ---
 
 export interface ServiceContainer {
@@ -385,11 +397,68 @@ export interface ServiceContainer {
 export function createServiceContainer(
   overrides: Partial<ServiceContainer> = {},
 ): ServiceContainer {
+  // 1. SMS Provider (Africa's Talking if credentials exist, else Mock)
+  let sms: SmsProvider = overrides.sms || new MockSmsProvider();
+  if (!overrides.sms && process.env.AFRICASTALKING_API_KEY && process.env.AFRICASTALKING_USERNAME) {
+    sms = new AfricaTalkingSmsProvider({
+      apiKey: process.env.AFRICASTALKING_API_KEY,
+      username: process.env.AFRICASTALKING_USERNAME,
+      senderId: process.env.AFRICASTALKING_SENDER_ID,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    });
+  }
+
+  // 2. Relayer (Stellar RPC Relayer if configured, else Mock)
+  let relayer: Relayer = overrides.relayer || new MockRelayer();
+  if (!overrides.relayer && process.env.STELLAR_RPC_URL && process.env.RELAYER_ADDRESS) {
+    relayer = new StellarRpcRelayer({
+      rpcUrl: process.env.STELLAR_RPC_URL,
+      relayerAddress: process.env.RELAYER_ADDRESS,
+      horizonUrl: process.env.STELLAR_HORIZON_URL,
+      networkPassphrase: process.env.STELLAR_NETWORK_PASSPHRASE,
+      relayerSecretKey: process.env.RELAYER_SECRET_KEY,
+    });
+  }
+
+  // 3. Object Storage (S3 / R2 / MinIO if configured, else Mock)
+  let storage: ObjectStorage = overrides.storage || new MockObjectStorage();
+  if (!overrides.storage && process.env.S3_ENDPOINT) {
+    storage = new S3ObjectStorage({
+      endpoint: process.env.S3_ENDPOINT,
+      defaultBucket: process.env.S3_BUCKET,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || process.env.MINIO_ROOT_USER,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || process.env.MINIO_ROOT_PASSWORD,
+      region: process.env.AWS_REGION,
+      publicBaseUrl: process.env.STORAGE_PUBLIC_URL,
+    });
+  }
+
+  // 4. IPFS Pinner (Pinata if configured, else Mock)
+  let ipfs: IpfsPinner = overrides.ipfs || new MockIpfsPinner();
+  if (!overrides.ipfs && (process.env.PINATA_JWT || process.env.PINATA_API_KEY)) {
+    ipfs = new PinataIpfsPinner({
+      jwt: process.env.PINATA_JWT,
+      apiKey: process.env.PINATA_API_KEY,
+      secretApiKey: process.env.PINATA_SECRET_API_KEY,
+      gatewayUrl: process.env.IPFS_GATEWAY_URL,
+    });
+  }
+
+  // 5. Billing (Paystack if configured, else Mock)
+  let billing: Billing = overrides.billing || new MockBilling();
+  if (!overrides.billing && process.env.PAYSTACK_SECRET_KEY) {
+    billing = new PaystackBilling({
+      secretKey: process.env.PAYSTACK_SECRET_KEY,
+      publicKey: process.env.PAYSTACK_PUBLIC_KEY,
+      webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+    });
+  }
+
   return {
-    sms: overrides.sms || new MockSmsProvider(),
-    relayer: overrides.relayer || new MockRelayer(),
-    storage: overrides.storage || new MockObjectStorage(),
-    ipfs: overrides.ipfs || new MockIpfsPinner(),
-    billing: overrides.billing || new MockBilling(),
+    sms,
+    relayer,
+    storage,
+    ipfs,
+    billing,
   };
 }
