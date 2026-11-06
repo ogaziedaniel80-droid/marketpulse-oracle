@@ -720,11 +720,11 @@ impl DisputesContract {
             // Void the observation: set to Cancelled to prevent finalise()
             board.set_status(&contract_addr, &request_id, &RequestStatus::Cancelled);
 
-            // TODO(owner): trigger bulk fraud-slash on all reporters via ReportEngine.
-            // In v1 this requires the reporter list from ReportEngine, which would be a
-            // cross-contract call. See docs/adr for Phase 2 enhancement.
-            // Individual fraud slashes can be triggered by admin calling apply_fraud_slash
-            // on the ReportEngine directly after a dispute is upheld.
+            DisputeResolvedEvent {
+                request_id,
+                upheld: true,
+            }
+            .publish(&env);
         } else {
             // Rejected: slash bond
             let audit_addr: Address = env
